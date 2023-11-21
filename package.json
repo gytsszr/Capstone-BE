@@ -1,0 +1,17 @@
+{
+  "name": "be-jobsterifc",
+  "version": "1.0.0",
+  "description": "Jobsterific Backend",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "nodemon ./src/server.js",
+    "start": "node ./src/server.js"
+  },
+  "author": "CC-CH2-PR601",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/hapi": "^21.3.2",
+    "mysql2": "^3.6.4",
+    "nodemon": "^3.0.1"
+  }
+}
