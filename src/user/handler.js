@@ -11,6 +11,37 @@ const getUser = async () => {
     }
 };
 
+const register = async (request, h) => {
+    const {
+        firstName, 
+        lastName, 
+        email, 
+        password, 
+        job, 
+        sex, 
+        address 
+    } = request.payload;
+
+    try {
+        // Membuat user baru dan menyimpannya ke database
+        const newUser = await users.create({
+            firstName, 
+            lastName, 
+            email, 
+            password, 
+            job, 
+            sex, 
+            address
+        });
+
+        // Mengembalikan data user yang baru dibuat
+        return newUser;
+    } catch (err) {
+        console.error('Terjadi kesalahan:', err);
+        throw err;
+    }
+}
+
 module.exports = {
-    getUser
+    getUser, register
 };

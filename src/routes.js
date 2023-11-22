@@ -1,5 +1,5 @@
 //routes boleh diisi disini yaa
-const {getUser} = require('./user/handler');
+const {getUser, register} = require('./user/handler');
 const routes = [
     //user
     {
@@ -7,9 +7,14 @@ const routes = [
         path: "/",
         handler: getUser
     },
+    {
+        method: 'POST',
+        path: "/addUser",
+        handler: register
+    },
     //costumer uncomment code dibawah
     // {
-
+    //     method: 'GET'
     // },
     //admin,
     // {
