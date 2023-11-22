@@ -12,12 +12,12 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       applyments.belongsTo(models.users, {
         foreignKey: 'userId',
-        as: 'userId',
+        as: 'user',
         onDelete: 'CASCADE',
       });
       applyments.belongsTo(models.batchs, {
         foreignKey: 'batchId',
-        as: 'batchId',
+        as: 'batch',
         onDelete: 'CASCADE',
       });
     }

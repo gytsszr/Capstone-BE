@@ -54,7 +54,7 @@ module.exports = {
         allowNull: true
       },
       sex: {
-        type: Sequelize.ENUM,
+        type: Sequelize.ENUM('MALE', 'FEMALE'),
       },
       address: {
         type: Sequelize.STRING,

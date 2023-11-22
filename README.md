@@ -10,4 +10,9 @@ ini kita memakai MySQL secara online yaa, dan berikut datanya.
  phpMyAdmin online:{
   https://auth-db1091.hstgr.io/index.php?route=/
  } 
+
+ Sequelize command to undo :
+ npx sequelize-cli db:migrate:undo --name 001-create-users.js
+ npx sequelize-cli db:migrate:undo --name 002-create-batchs.js
+ npx sequelize-cli db:migrate:undo --name 003-create-batchs.js
     

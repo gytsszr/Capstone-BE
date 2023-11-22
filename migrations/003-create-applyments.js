@@ -20,7 +20,7 @@ module.exports = {
       batchId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'batch', // nama tabel, bukan nama model
+          model: 'batchs', // nama tabel, bukan nama model
           key: 'batchId', // kolom yang dirujuk di tabel users
         },
         onDelete: 'SET NULL',

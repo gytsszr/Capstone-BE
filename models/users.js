@@ -10,17 +10,18 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      batchs.hasMany(models.batchs, {
-        foreignKey: 'batchId',
-        as: 'batchId',
+      users.hasMany(models.batchs, {
+        foreignKey: 'userId',
+        as: 'batches',
       });
-      batchs.hasMany(models.applyments, {
-        foreignKey: 'Id',
-        as: 'batchId',
+      users.hasMany(models.applyments, {
+        foreignKey: 'userId',
+        as: 'application',
       });
     }
   }
-  users.init({
+  users.init(
+    {
     userId: {
       type: DataTypes.INTEGER,
       primaryKey: true
@@ -36,11 +37,12 @@ module.exports = (sequelize, DataTypes) => {
     isAdmin: DataTypes.BOOLEAN,
     status: DataTypes.BOOLEAN,
     job: DataTypes.STRING,
-    sex: DataTypes.ENUM,
+    sex: DataTypes.ENUM('MALE','FEMALE'),
     address: DataTypes.STRING,
     website: DataTypes.STRING,
     description: DataTypes.TEXT,
-  }, {
+  }, 
+  {
     sequelize,
     modelName: 'users',
   });
