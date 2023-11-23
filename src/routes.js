@@ -1,35 +1,41 @@
 //routes boleh diisi disini yaa
-const {getUser, register} = require('./user/handler');
+const {getUser, createUser, loginUser, logoutUser, getCurrentUser} = require('./user/handler');
 const routes = [
     //user
     {
         method: 'GET',
-        path: "/",
+        path: '/',
         handler: getUser
     },
     {
-        method: 'GET',
+        // CreateNew User API
+        method: 'POST',
         path: "/api/users",
-        handler: getUser
-        // TBC
+        handler: createUser
     },
     {
+        // Login
         method: 'POST',
         path: "/api/users/login",
-        handler: getUser
-        // TBC
+        handler: loginUser
+    },
+    {
+        //Get User
+        method: 'GET',
+        path: "/api/users",
+        handler: getCurrentUser
     },
     {
         method: 'PUT',
         path: "/api/users/current",
-        handler: getUser
+        handler: getCurrentUser
         // TBC
     },
     {
+        // Logout User
         method: 'DELETE',
         path: "/api/users/logout",
-        handler: getUser
-        // TBC
+        handler: logoutUser
     },
     {
         method: 'POST',
