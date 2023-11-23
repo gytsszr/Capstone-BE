@@ -1,6 +1,12 @@
 //routes boleh diisi disini yaa
 const {getUser, register} = require('./user/handler');
-const {getCustomer, register} = require('./customer/handler');
+const {
+  getUser,
+  register,
+  getCustomers,
+  getCustomerById,
+  updateCustomer,
+} = require("./customer/handler");
 const routes = [
     //user
     {
@@ -70,15 +76,25 @@ const routes = [
     },
     //costumer
     {
-        method: 'GET',
-        path: "/api/customers",
-        handler: getCustomer
+        method: "GET",
+        path: "/customers",
+        handler: getCustomers,
     },
     {
-        method: 'GET',
-        path: "/api/customers",
-        handler: getCustomer
-    }
+        method: "POST",
+        path: "/customers/register",
+        handler: register,
+    },
+    {
+        method: "GET",
+        path: "/customers/:id_customer",
+        handler: getCustomerById,
+    },
+    {
+        method: "PUT",
+        path: "/customers/:id_customer",
+        handler: updateCustomer,
+    },
     //admin,
     // {
 
