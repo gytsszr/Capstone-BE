@@ -1,4 +1,4 @@
-const { customers } = require('./customer/handler'); // Ganti dengan path yang benar ke file models/users.js
+const { customers } = require('././handler'); // Ganti dengan path yang benar ke file models/users.js
 
 // Ambil data dari SQLite
 const getCustomer = async () => {
@@ -21,7 +21,8 @@ const register = async (request, h) => {
         sex, 
         address,
         website,
-        description
+        description,
+        isCustomer
     } = request.payload;
 
     try {
