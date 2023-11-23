@@ -1,5 +1,6 @@
 //routes boleh diisi disini yaa
 const {getUser, createUser, loginUser, getCurrentUser, logoutUser, updateUser} = require('./user/handler');
+const {getResume, resume, deleteResume} = require('./resume/handler');
 
 const routes = [
     //user
@@ -9,7 +10,7 @@ const routes = [
         handler: getUser
     },
     {
-        // CreateNew User API
+        // CreateNew User
         method: 'POST',
         path: "/api/users",
         handler: createUser
@@ -27,10 +28,10 @@ const routes = [
         handler: getCurrentUser
     },
     {
+        //Edit User
         method: 'PUT',
         path: "/api/users/current",
         handler: updateUser
-        // TBC
     },
     {
         // Logout User
@@ -38,27 +39,36 @@ const routes = [
         path: "/api/users/logout",
         handler: logoutUser
     },
+
+// Resume
+
     {
+        //Adding Resume
         method: 'POST',
         path: "/api/users/resume",
-        handler: getUser
-        // TBC
+        handler: resume
     },
     {
+        //Reupload Resume
         method: 'PUT',
         path: "/api/users/resume",
-        handler: getUser
+        handler: resume
     },
     {
+        //Get Resume
         method: 'GET',
         path: "/api/users/resume",
-        handler: getUser
+        handler: getResume
     },
     {
+        //Delete Resume
         method: 'DELETE',
         path: "/api/users/resume",
-        handler: getUser
+        handler: deleteResume
     },
+
+// Applyment
+    
     {
         method: 'POST',
         path: "/api/applyment",
@@ -73,15 +83,7 @@ const routes = [
         method: 'DELETE',
         path: "/api/applyment",
         handler: getUser
-    },
-    //costumer
-    // {
-
-    // }
-    //admin,
-    // {
-
-    // }
+    }
 ];
 
 module.exports = routes;

@@ -32,7 +32,7 @@ const createUser = async (request, h) => {
     } = request.payload;
 
     try {
-        const newUser = await users.create({
+        await users.create({
             firstName, 
             lastName, 
             email, 
@@ -144,7 +144,7 @@ const updateUser = async (request, h) => {
         user.address = address;
         await user.save();
 
-        return h.response({ message: 'Success Update User' , user}).code(200);
+        return h.response({ message: 'Success Update' , user}).code(200);
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
         return h.response({ message: 'Validation Error' }).code(400);
@@ -169,7 +169,7 @@ const logoutUser = async (request, h) => {
         user.token = null;
         await user.save();
 
-        return h.response({ message: 'Success LogOut' }).code(200);
+        return h.response({ message: 'Success Log Out' }).code(200);
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
         return h.response({ message: 'Validation Error', err}).code(400);
