@@ -6,6 +6,7 @@ const {
   getCustomers,
   getCustomerById,
   updateCustomer,
+  customerLogout,
 } = require("./customer/handler");
 const routes = [
     //user
@@ -94,6 +95,11 @@ const routes = [
         method: "PUT",
         path: "/customers/:id_customer",
         handler: updateCustomer,
+    },
+    {
+        method: "POST",
+        path: "/customers/logout",
+        handler: customerLogout,
     },
     //admin,
     // {
