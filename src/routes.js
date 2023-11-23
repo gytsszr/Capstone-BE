@@ -1,5 +1,5 @@
 //routes boleh diisi disini yaa
-const {getUser, createUser, loginUser, getCurrentUser, logoutUser} = require('./user/handler');
+const {getUser, createUser, loginUser, getCurrentUser, logoutUser, updateUser} = require('./user/handler');
 
 const routes = [
     //user
@@ -29,7 +29,7 @@ const routes = [
     {
         method: 'PUT',
         path: "/api/users/current",
-        handler: getCurrentUser
+        handler: updateUser
         // TBC
     },
     {
