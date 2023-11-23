@@ -1,5 +1,5 @@
 //routes boleh diisi disini yaa
-const {getUser, register} = require('./user/handler');
+const {getUser, createUser, loginUser, getCurrentUser, logoutUser} = require('./user/handler');
 const {
   getUser,
   register,
