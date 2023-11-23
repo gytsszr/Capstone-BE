@@ -123,9 +123,15 @@ const updateCustomer = async (req, h) => {
   }
 };
 
+  const customerLogout = (req, h) => {
+  req.logout();
+  return h.response({ message: "Logout successful" }, 200);
+};
+
 module.exports = {
   getCustomers,
   register,
   getCustomerById,
   updateCustomer,
+  customerLogout,
 };
