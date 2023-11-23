@@ -120,6 +120,7 @@ const getCurrentUser = async (request, h) => {
     }
 }
 
+
 const logoutUser = async (request, h) => {
     const token = request.headers['token'];
 
