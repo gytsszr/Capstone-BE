@@ -1,13 +1,22 @@
 //routes boleh diisi disini yaa
 const {getUser, createUser, loginUser, getCurrentUser, logoutUser} = require('./user/handler');
 const {
-  getUser,
   register,
   getCustomers,
   getCustomerById,
   updateCustomer,
   customerLogout,
 } = require("./customer/handler");
+const {
+  registerAdmin,
+  loginAdmin,
+  getCustomers,
+  registerBatch,
+  getApplyments,
+  getApplyment,
+  logoutAdmin,
+} = require("./admin/handler");
+
 const routes = [
     //user
     {
@@ -108,9 +117,41 @@ const routes = [
         handler: customerLogout,
     },
     //admin,
-    // {
-
-    // }
+    {
+        method: "POST",
+        path: "/api/admins",
+        handler: registerAdmin,
+    },
+    {
+        method: "POST",
+        path: "/api/admins/login",
+        handler: loginAdmin,
+    },
+    {
+        method: "GET",
+        path: "/api/admins/customers",
+        handler: getCustomers,
+     },
+     {
+        method: "POST",
+        path: "/api/admins/batches",
+        handler: registerBatch,
+     },
+     {
+        method: "GET",
+        path: "/api/admins/applyments",
+        handler: getApplyments,
+      },
+      {
+        method: "GET",
+        path: "/api/admins/applyments/:applyId",
+        handler: getApplyment,
+      },
+      {
+        method: "POST",
+        path: "/api/admins/logout",
+        handler: logoutAdmin,
+      },
 ];
 
 module.exports = routes;
