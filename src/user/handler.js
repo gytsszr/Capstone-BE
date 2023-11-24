@@ -123,7 +123,6 @@ const updateUser = async (request, h) => {
 
     try {
         const key = 'Jobsterific102723';
-        const userData = decryptData(token, key);
 
         const user = await users.findOne({
             where: {

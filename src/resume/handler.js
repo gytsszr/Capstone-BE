@@ -89,16 +89,46 @@ const parsePDF = async (request, h) => {
                 email: userData.email,
             }
         });
+        //validation
         if (!user && user.email != userData.email) {
             return h.response({ message: 'Validation Error' }).code(400);
         }
         
         // const dataBuffer = fs.readFileSync('./Demo/demo.pdf');
-        const dataBuffer = fs.readFileSync('./Demo/Resume-Samuel-Zakaria H.pdf');
+        const dataBuffer = fs.readFileSync(user.resume);
         const data = await pdf(dataBuffer);
         const text = data.text.replace(/\n/g, ' ');
 
-        return h.response({ message: "Success Reading Resume" , text: text}).code(200);
+        return h.response({ message: "Success Parsing Resume" , text: text}).code(200);
+
+    } catch (err) {
+        console.error('Terjadi kesalahan:', err);
+        return h.response({ message: 'Validation Error', err}).code(400);
+    }
+}
+const parseAllPdf = async (request, h) => {
+    try {
+        const usersData = await users.findAll();
+        //validation
+        if (!usersData) {
+            return h.response({ message: 'Validation Error' }).code(400);
+        }
+        
+        let allResumes = [];
+        for (let userData of usersData) {
+            // Jika resume null atau kosong, lanjutkan ke pengguna berikutnya
+            if (!userData.resume) {
+                continue;
+            }
+
+            const dataBuffer = fs.readFileSync(userData.resume);
+            const data = await pdf(dataBuffer);
+            const text = data.text.replace(/\n/g, ' ');
+
+            allResumes.push({ result: text });
+        }
+
+        return h.response({ message: "Success Parsing Resume" , resumes: allResumes}).code(200);
 
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
@@ -110,5 +140,6 @@ module.exports = {
     getResume,
     resume,
     deleteResume,
-    parsePDF
+    parsePDF,
+    parseAllPdf
 };

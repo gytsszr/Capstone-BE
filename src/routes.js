@@ -1,6 +1,7 @@
 //routes boleh diisi disini yaa
 const {getUser, createUser, loginUser, getCurrentUser, logoutUser, updateUser} = require('./user/handler');
-const {getResume, resume, deleteResume, parsePDF} = require('./resume/handler');
+const {getResume, resume, deleteResume, parsePDF, parseAllPdf} = require('./resume/handler');
+const { createApplyment, viewAllApplyment, viewApplymentByUID, viewApplymentByBID} = require('./applyment/handler');
 
 const routes = [
     //user
@@ -68,27 +69,42 @@ const routes = [
     },
     {
         //Parse PDF
-        method: 'GET',
+        method: 'POST',
         path: "/api/users/resume/parse",
         handler: parsePDF
+    },
+    {
+        //Parse All Resume 
+        method: 'GET',
+        path: "/api/users/resume/parse",
+        handler: parseAllPdf
     },
 
 // Applyment
     
     {
+        //create applyment
         method: 'POST',
         path: "/api/applyment",
-        handler: getUser
+        handler: createApplyment
     },
     {
+        //view all applyment
         method: 'GET',
         path: "/api/applyment",
-        handler: getUser
+        handler: viewAllApplyment
     },
     {
-        method: 'DELETE',
-        path: "/api/applyment",
-        handler: getUser
+        //viewing applyment by user id
+        method: 'GET',
+        path: "/api/applyment/user",
+        handler: viewApplymentByUID
+    },
+    {
+        //viewing all applyment by batch id @batch
+        method: 'POST',
+        path: "/api/applyment/batch",
+        handler: viewApplymentByBID
     }
 ];
 
