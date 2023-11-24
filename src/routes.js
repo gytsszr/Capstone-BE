@@ -10,9 +10,10 @@ const {
 } = require("./customer/handler");
 
 const {
-    getCandidates,updateCandidate,updateCandidatePassword,updateCandidateStatus,deleteCandidate,
-    adminCreateCustomer,adminGetCustomers,adminUpdateCustomer,adminDeleteCustomer,createBatch,
-    getBatches,updateBatch,deleteBatch,
+    getCandidates,updateCandidate,updateCandidatePassword,
+    updateCandidateStatus,deleteCandidate,
+    adminCreateCustomer,adminGetCustomers,adminUpdateCustomer,adminDeleteCustomer,
+    createBatch,getBatches,updateBatch,deleteBatch,
   } = require('./admin/handler');
   
   
