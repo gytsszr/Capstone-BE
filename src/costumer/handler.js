@@ -1,4 +1,14 @@
 const { customers } = require('./handler'); // Ganti dengan path yang benar ke file models/users.js
+const CryptoJS = require('crypto-js');
+
+const encryptData = (data, key) => {
+    return CryptoJS.AES.encrypt(JSON.stringify(data), key).toString();
+};
+
+const decryptData = (ciphertext, key) => {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, key);
+    return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+};
 
 // Ambil data dari SQLite
 const getCustomers = async () => {
@@ -17,7 +27,7 @@ const getCustomers = async () => {
 };
 
 //Mengubah fungsi `register` untuk menerima parameter `isCustomer` secara default
-const register = async (req, h) => {
+const registerCustomers = async (req, h) => {
   const {
     firstName,
     lastName,
@@ -130,7 +140,7 @@ const updateCustomer = async (req, h) => {
 
 module.exports = {
   getCustomers,
-  register,
+  registerCustomers,
   getCustomerById,
   updateCustomer,
   customerLogout,
