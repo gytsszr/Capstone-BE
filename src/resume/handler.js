@@ -1,5 +1,7 @@
 const { users } = require('../../models'); 
 const CryptoJS = require('crypto-js');
+const fs = require('fs');
+const pdf = require('pdf-parse');
 
 const decryptData = (ciphertext, key) => {
     const bytes = CryptoJS.AES.decrypt(ciphertext, key);
@@ -76,8 +78,37 @@ const deleteResume = async (request, h) => {
         return h.response({ message: 'Validation Error', err}).code(400);
     }
 }
+const parsePDF = async (request, h) => {
+    const token = request.headers['token'];
+    try {
+        const key = 'Jobsterific102723';
+        const userData = decryptData(token, key);
+
+        const user = await users.findOne({
+            where: {
+                email: userData.email,
+            }
+        });
+        if (!user && user.email != userData.email) {
+            return h.response({ message: 'Validation Error' }).code(400);
+        }
+        
+        // const dataBuffer = fs.readFileSync('./Demo/demo.pdf');
+        const dataBuffer = fs.readFileSync('./Demo/Resume-Samuel-Zakaria H.pdf');
+        const data = await pdf(dataBuffer);
+        const text = data.text.replace(/\n/g, ' ');
+
+        return h.response({ message: "Success Reading Resume" , text: text}).code(200);
+
+    } catch (err) {
+        console.error('Terjadi kesalahan:', err);
+        return h.response({ message: 'Validation Error', err}).code(400);
+    }
+}
+
 module.exports = {
     getResume,
     resume,
-    deleteResume
+    deleteResume,
+    parsePDF
 };
