@@ -1,10 +1,15 @@
 //routes boleh diisi disini yaa
 const {getUser, createUser, loginUser, getCurrentUser, logoutUser} = require('./user/handler');
 const {
-  register,
-  getCustomers,
+  getCustomer,
+  registerCustomer,
+  loginCustomer,
   getCustomerById,
   updateCustomer,
+  getResume,
+  applyBatch,
+  getBatches,
+  getBatch,
   customerLogout,
 } = require("./customer/handler");
 const {
@@ -110,6 +115,11 @@ const routes = [
         method: "PUT",
         path: "/customers/:id_customer",
         handler: updateCustomer,
+    },
+    {
+        method: "GET",
+        path: "/customers/:id_customer",
+        handler: getResume,
     },
     {
         method: "POST",
