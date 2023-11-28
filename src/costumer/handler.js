@@ -295,7 +295,7 @@ const applyBatch = async (req, h) => {
     }
 };
 
-async updateApplyment(req, h) {
+const updateApplyment = async (req, h) => {
   // Mendapatkan ID customer dan ID applyment dari parameter path
   const id_customer = req.params.id_customer;
   const applyment_id = req.params.applyment_id;
@@ -324,7 +324,7 @@ async updateApplyment(req, h) {
   }
 };
 
-async deleteApplyment(req, h) {
+const deleteApplyment = async (req, h) => {
   // Mendapatkan ID customer dan ID applyment dari parameter path
   const id_customer = req.params.id_customer;
   const applyment_id = req.params.applyment_id;
