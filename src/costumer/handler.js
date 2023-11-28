@@ -35,6 +35,7 @@ const registerCustomer = async (req, h) => {
         lastName,
         email,
         password,
+        phone,
         job,
         sex,
         address,
@@ -49,6 +50,7 @@ const registerCustomer = async (req, h) => {
             lastName,
             email,
             password,
+            phone,
             job,
             sex,
             address,
@@ -157,6 +159,7 @@ const updateCustomer = async (req, h) => {
             lastName,
             email,
             password,
+            phone,
             job,
             sex,
             address,
@@ -169,6 +172,7 @@ const updateCustomer = async (req, h) => {
         customer.lastName = lastName;
         customer.email = email;
         customer.password = password;
+        customer.phone = phone;
         customer.job = job;
         customer.sex = sex;
         customer.address = address;
@@ -190,10 +194,10 @@ const getResume = async (req, h) => {
     const id_user = req.params.id_user;
 
     try {
-        // Mencari customer di database berdasarkan ID
+        // Mencari usee di database berdasarkan ID
         const user = await users.findOne({ where: { id: id_user } });
 
-        if (!user) {
+        if (!usee) {
             return h.response({ error: "User tidak ditemukan" }).code(404);
         }
 
