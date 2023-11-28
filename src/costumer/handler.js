@@ -295,6 +295,61 @@ const applyBatch = async (req, h) => {
     }
 };
 
+async updateApplyment(req, h) {
+  // Mendapatkan ID customer dan ID applyment dari parameter path
+  const id_customer = req.params.id_customer;
+  const applyment_id = req.params.applyment_id;
+
+  try {
+    // Mencari applyment berdasarkan ID customer dan ID applyment
+    const applyment = await Applyment.findOne({ where: { customerid: id_customer, id: applyment_id } });
+
+    // Jika applyment tidak ditemukan, kirim respons 404
+    if (!applyment) {
+      return h.response({ error: "Applyment tidak ditemukan" }).code(404);
+    }
+
+    // Mengatur nilai applyment berdasarkan data payload dari request
+    applyment.set(req.payload);
+
+    // Menyimpan perubahan ke dalam database
+    await applyment.save();
+
+    // Mengembalikan respons sukses dengan data applyment yang diperbarui
+    return h.response(applyment).code(200);
+  } catch (err) {
+    // Menangani kesalahan dan mengembalikan respons kesalahan
+    console.error('Terjadi kesalahan:', err);
+    throw err;
+  }
+};
+
+async deleteApplyment(req, h) {
+  // Mendapatkan ID customer dan ID applyment dari parameter path
+  const id_customer = req.params.id_customer;
+  const applyment_id = req.params.applyment_id;
+
+  try {
+    // Mencari applyment berdasarkan ID customer dan ID applyment
+    const applyment = await Applyment.findOne({ where: { customerid: id_customer, id: applyment_id } });
+
+    // Jika applyment tidak ditemukan, kirim respons 404
+    if (!applyment) {
+      return h.response({ error: "Applyment tidak ditemukan" }).code(404);
+    }
+
+    // Menghapus applyment dari database
+    await applyment.remove();
+
+    // Mengembalikan respons sukses setelah menghapus applyment
+    return h.response({ message: "Applyment berhasil dihapus" }).code(200);
+  } catch (err) {
+    // Menangani kesalahan dan mengembalikan respons kesalahan
+    console.error('Terjadi kesalahan:', err);
+    throw err;
+  }
+};
+
 // Fungsi untuk melakukan logout customer
 const customerLogout = async (req, h) => {
     const token = req.headers['token'];
@@ -333,5 +388,7 @@ module.exports = {
     applyBatch,
     getBatches,
     getBatch,
+    updateApplyment,
+    deleteApplyment,
     customerLogout,
 };
