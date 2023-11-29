@@ -37,7 +37,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
-      isCostumer: {
+      isCustomer: {
         type: Sequelize.BOOLEAN,
         defaultValue: 0
       },

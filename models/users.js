@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     token: DataTypes.STRING,
     resume: DataTypes.STRING,
     profile: DataTypes.STRING,
-    isCostumer: DataTypes.BOOLEAN,
+    isCustomer: DataTypes.BOOLEAN,
     isAdmin: DataTypes.BOOLEAN,
     status: DataTypes.BOOLEAN,
     job: DataTypes.STRING,

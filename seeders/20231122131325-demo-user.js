@@ -29,11 +29,21 @@ module.exports = {
       lastName: "Company",
       email: "samsung@samsung.co.id",
       password: "budi",
-      isCostumer: "1",
+      isCustomer: "1",
       sex: "MALE",
       address: "Jln Linggarjati no 5A",
       website: "www.samsung.com",
       phone: "+061782828",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      firstName: "admin",
+      lastName: "admin",
+      email: "admin@gmail.com",
+      password: "admin",
+      isAdmin: "1",
+      sex: "MALE",
       createdAt: new Date(),
       updatedAt: new Date()
     },

@@ -11,8 +11,12 @@ ini kita memakai MySQL secara online yaa, dan berikut datanya.
   https://auth-db1091.hstgr.io/index.php?route=/
  } 
 
- installing :
+
+ Installing :
  npx sequelize-cli db:migrate
+ 
+ Seeding : 
+ npx sequelize-cli db:seed:all
  
  Sequelize command to undo :
  

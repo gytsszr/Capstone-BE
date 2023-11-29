@@ -27,7 +27,7 @@ const {
     loginCustomer,
     getCustomerById,
     updateCustomer,
-    // getResume,
+    getResumeBatch,
     applyBatch,
     getBatches,
     getBatch,
@@ -262,7 +262,7 @@ const routes = [
     {
         method: "GET",
         path: "/api/customers/:id_customer/resume",
-        handler: getResume,
+        handler: getResumeBatch,
     },
     {
         method: "GET",
