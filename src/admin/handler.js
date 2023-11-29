@@ -36,31 +36,40 @@ const registerAdmin = async (req, h) => {
       lastName,
       email,
       password,
-    } = req.body;
+      sex,
+      address,
+    } = req.payload;
 
     // Validasi data
     if (!email.includes("@")) {
-      return h.status(400).json({ error: "Email tidak valid" });
+      return h.response({ error: "Email tidak valid" }).code(400);
     }
 
-    if (password.length < 6) {
-      return h.status(400).json({ error: "Password harus lebih dari 6 karakter" });
+    if (password.length < 8) {
+      return h.response({ error: "Password harus lebih dari 8 karakter" }).code(400);
     }
 
+    // Membuat admin baru
     const newAdmin = await users.create({
       firstName,
       lastName,
       email,
       password,
+      sex,
+      address,
       isAdmin: true,
     });
 
-    return h.response(newAdmin).code(201);
+    // Mengembalikan pesan sukses
+    return h.response({ message: "Admin berhasil dibuat" }).code(201);
   } catch (err) {
     console.error("Terjadi kesalahan:", err);
-    throw err;
+    
+    // Mengembalikan pesan kesalahan internal server error
+    return h.response({ error: "Terjadi kesalahan internal server" }).code(500);
   }
 };
+
 
 // Endpoint POST /api/admins/login (Login Admin)
 
