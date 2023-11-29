@@ -1,4 +1,4 @@
-const { users } = require('../../models'); // Ganti dengan path yang benar ke file models/users.js
+const { users } = require('../../models'); 
 const CryptoJS = require('crypto-js');
 
 const encryptData = (data, key) => {
@@ -10,7 +10,6 @@ const decryptData = (ciphertext, key) => {
     return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 };
 
-// Ambil data dari SQLite
 const getUser = async () => {
     try {
         const usersData = await users.findAll();
@@ -33,8 +32,7 @@ const createUser = async (request, h) => {
     } = request.payload;
 
     try {
-        // Membuat user baru dan menyimpannya ke database
-        const newUser = await users.create({
+        await users.create({
             firstName, 
             lastName, 
             email, 
@@ -58,7 +56,6 @@ const loginUser = async (request, h) => {
     } = request.payload;
 
     try {
-        // Mencari user di database berdasarkan email dan password
         const user = await users.findOne({
             where: {
                 email: email,
@@ -70,20 +67,16 @@ const loginUser = async (request, h) => {
             return h.response({ message: 'Validation Error' }).code(400);
         }
 
-        // Mengenkripsi data user
-        const key = 'Jobsterific102723'; // Ganti dengan kunci rahasia Anda
-
+        const key = 'Jobsterific102723';
         const encryptedData = encryptData({
             email: user.email,
             password: user.password,
             firstName: user.firstName
         }, key);
 
-        // Menyimpan token ke database
         user.token = encryptedData;
         await user.save();
 
-        // Mengembalikan data terenkripsi
         return h.response({ message: `Success Login`, user}).code(200);
 
     } catch (err) {
@@ -95,21 +88,17 @@ const loginUser = async (request, h) => {
 const getCurrentUser = async (request, h) => {
     const token = request.headers['token'];
     try {
-        // Mendekripsi token untuk mendapatkan data pengguna
-        const key = 'Jobsterific102723'; // Ganti dengan kunci rahasia Anda
+        const key = 'Jobsterific102723';
         const userData = decryptData(token, key);
-        // Mencari user di database berdasarkan email dan password
 
         const user = await users.findOne({
             where: {
                 email: userData.email,
             }
         });
-
         if (!user && user.email != userData.email) {
             return h.response({ message: 'Validation Error' }).code(400);
         }
-        // Mengembalikan data pengguna
         return h.response({
             user
         }).code(200);
@@ -119,6 +108,48 @@ const getCurrentUser = async (request, h) => {
         return h.response({ message: 'Validation Error', err}).code(400);
     }
 }
+
+const updateUser = async (request, h) => {
+    const token = request.headers['token'];
+    const {
+        firstName, 
+        lastName, 
+        email,
+        password, 
+        job, 
+        sex, 
+        address
+    } = request.payload;
+
+    try {
+        const key = 'Jobsterific102723';
+
+        const user = await users.findOne({
+            where: {
+                token: token,
+            }
+        });
+
+        if (!user) {
+            return h.response({ message: 'Validation Error' }).code(400);
+        }
+
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.email = email;
+        user.password = password;
+        user.job = job;
+        user.sex = sex;
+        user.address = address;
+        await user.save();
+
+        return h.response({ message: 'Success Update' , user}).code(200);
+    } catch (err) {
+        console.error('Terjadi kesalahan:', err);
+        return h.response({ message: 'Validation Error' }).code(400);
+    }
+}
+
 
 const logoutUser = async (request, h) => {
     const token = request.headers['token'];
@@ -134,11 +165,10 @@ const logoutUser = async (request, h) => {
             return h.response({ message: 'Validation Error' }).code(400);
         }
 
-        // Menghapus token dari database
         user.token = null;
         await user.save();
 
-        return h.response({ message: 'Success LogOut' }).code(200);
+        return h.response({ message: 'Success Log Out' }).code(200);
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
         return h.response({ message: 'Validation Error', err}).code(400);
@@ -150,5 +180,6 @@ module.exports = {
     createUser, 
     loginUser,
     getCurrentUser,
+    updateUser,
     logoutUser,
 };
