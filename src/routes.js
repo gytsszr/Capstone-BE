@@ -1,17 +1,11 @@
 //routes boleh diisi disini yaa
-
+const {getUser, createUser, loginUser, getCurrentUser, logoutUser} = require('./user/handler');
 const {
-  getCustomer,
-  registerCustomer,
-  loginCustomer,
+  registerCustomers,
+  getCustomers,
   getCustomerById,
   updateCustomer,
   getResume,
-  applyBatch,
-  getBatches,
-  getBatch,
-  updateApplyment,
-  deleteApplyment,
   customerLogout,
 } = require("./customer/handler");
 
@@ -22,22 +16,91 @@ const {
     createBatch,getBatches,updateBatch,deleteBatch,
   } = require('./admin/handler');
   
+  
+
 const routes = [
+    //user
+    {
+        method: 'GET',
+        path: '/',
+        handler: getUser
+    },
+    {
+        // CreateNew User API
+        method: 'POST',
+        path: "/api/users",
+        handler: createUser
+    },
+    {
+        // Login
+        method: 'POST',
+        path: "/api/users/login",
+        handler: loginUser
+    },
+    {
+        //Get User
+        method: 'GET',
+        path: "/api/users",
+        handler: getCurrentUser
+    },
+    {
+        method: 'PUT',
+        path: "/api/users/current",
+        handler: getCurrentUser
+        // TBC
+    },
+    {
+        // Logout User
+        method: 'DELETE',
+        path: "/api/users/logout",
+        handler: logoutUser
+    },
+    {
+        method: 'POST',
+        path: "/api/users/resume",
+        handler: getUser
+        // TBC
+    },
+    {
+        method: 'PUT',
+        path: "/api/users/resume",
+        handler: getUser
+    },
+    {
+        method: 'GET',
+        path: "/api/users/resume",
+        handler: getUser
+    },
+    {
+        method: 'DELETE',
+        path: "/api/users/resume",
+        handler: getUser
+    },
+    {
+        method: 'POST',
+        path: "/api/applyment",
+        handler: getUser
+    },
+    {
+        method: 'GET',
+        path: "/api/applyment",
+        handler: getUser
+    },
+    {
+        method: 'DELETE',
+        path: "/api/applyment",
+        handler: getUser
+    },
     //costumer
     {
         method: "GET",
         path: "/api/customers",
-        handler: getCustomer,
+        handler: getCustomers,
     },
     {
         method: "POST",
         path: "/api/customers/register",
-        handler: registerCustomer,
-    },
-    {
-        method: "POST",
-        path: "/api/customers/login",
-        handler: loginCustomer,
+        handler: register,
     },
     {
         method: "GET",
@@ -50,36 +113,6 @@ const routes = [
         handler: updateCustomer,
     },
     {
-        method: "POST",
-        path: "/api/customers/:id_customer/batches/:batchId/apply",
-        handler: applyBatch,
-    },
-    {
-        method: "GET",
-        path: "/api/customers/:id_customer/resume",
-        handler: getResume,
-    },
-    {
-        method: "GET",
-        path: "/api/customers/batches",
-        handler: getBatches,
-    },
-    {
-        method: "GET",
-        path: "/api/customers/batches/:batchId",
-        handler: getBatch,
-    },
-    {
-        method: "PUT",
-        path: "/api/customers/:id_customer/applyments/:applyment_id",
-        handler: updateApplyment,
-    },
-    {
-        method: "DELETE",
-        path: "/api/customers/:id_customer/applyments/:applyment_id",
-        handler: deleteApplyment,
-    },
-    {
         method: "GET",
         path: "/api/customers/resume/",
         handler: getResume,
@@ -89,9 +122,12 @@ const routes = [
         path: "/api/customers/logout",
         handler: customerLogout,
     },
-  
+    
+    
+    
+    
     //admin,
-  //{
+    // {
  // Candidates
  {
     method: 'GET',
@@ -162,7 +198,7 @@ const routes = [
     path: '/api/admins/batches/:id_batch',
     handler: deleteBatch,
   },
-    // 
+    // }
 ];
-module.exports = router;
-    
+
+module.exports = routes;
