@@ -19,6 +19,7 @@ const getAdmin = async () => {
             where: {
                 isAdmin: true,
             },
+           attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt', 'updatedAt'],
         });
         return adminData;
     } catch (err) {
