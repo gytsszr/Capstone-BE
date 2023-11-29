@@ -70,65 +70,93 @@ const registerAdmin = async (req, h) => {
   }
 };
 
-
+//////////////////////////////////////////////////////////////////////////////////////
 // Endpoint POST /api/admins/login (Login Admin)
 
 const loginAdmin = async (req, h) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.payload;
 
+  try {
+    // Mencari admin di database berdasarkan email dan password
     const admin = await users.findOne({
       where: {
-        email,
-        password,
+        email: email,
+        password: password,
         isAdmin: true,
-      },
+      }
     });
 
     if (!admin) {
-      return h.status(404).json({ error: "Admin tidak ditemukan" });
+      return h.response({ message: 'Invalid email or password' }).code(400);
     }
 
-    const token = encryptData(admin.id, key);
+    // Mengenkripsi data admin
+    const key = 'Jobsterific102723';
+    const encryptedData = encryptData({
+      email: admin.email,
+      password: admin.password,
+      firstName: admin.firstName
+    }, key);
 
-    return h.response({ token }).code(200);
+    // Menyimpan token ke database
+    admin.token = encryptedData;
+    await admin.save();
+
+    // Mengembalikan data terenkripsi
+    return h.response({ message: 'Success Login', admin }).code(200);
   } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
+    console.error('Terjadi kesalahan:', err);
+    return h.response({ message: 'Invalid email or password' }).code(400);
   }
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////
 // Endpoint GET /api/admins/customers (Get All Customers)
 
-const AdmingetCustomers = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
+const AdmingetCustomers = async (request, h) => {
+    const token = request.headers['token'];
 
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
+    try {
+        const key = 'Jobsterific102723';
+        const adminData = decryptData(token, key);
+
+        // Periksa admin
+        if (!adminData || !adminData.isAdmin) {
+            return h.response({ message: 'Unauthorized' }).code(401);
+        }
+
+        // Mengambil data customer
+        const customers = await users.findAll({
+            where: { isCustomer: true },
+            attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt', 'updatedAt'],
+        });
+
+        // Mengembalikan data customer yang sudah di-dekripsi
+        const decryptedCustomers = customers.map(customer => {
+            return {
+                id: customer.id,
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email,
+                createdAt: customer.createdAt,
+                updatedAt: customer.updatedAt,
+                // Tambahkan data tambahan jika diperlukan
+            };
+        });
+
+        return h.response(decryptedCustomers).code(200);
+    } catch (err) {
+        console.error('Terjadi kesalahan:', err);
+        return h.response({ message: 'Validation Error', err }).code(400);
     }
-
-    const page = req.query.page || 1;
-    const per_page = req.query.per_page || 10;
-
-const customers = await users.findAll({
-  where: { isCustomer: true },
-  order: [
-    ['firstName', 'ASC'],
-  ],
-  limit: per_page,
-  offset: (page - 1) * per_page,
-});
-
-    return h.response(customers).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
 };
+//////////////////////////////////////
+
+
+
+
+
+
 
       const registerBatch = async (req, h) => {
   try {
