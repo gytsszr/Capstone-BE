@@ -30,7 +30,10 @@ module.exports = (sequelize, DataTypes) => {
     campaignName: DataTypes.STRING,
     campaignDesc: DataTypes.TEXT,
     campaignPeriod: DataTypes.DATE,
-    campaignKeyword: DataTypes.STRING
+    campaignKeyword: DataTypes.STRING,
+    status: DataTypes.BOOLEAN,
+    startDate: DataTypes.DATE,
+    endDate: DataTypes.DATE,
   }, {
     sequelize,
     modelName: 'batchs',

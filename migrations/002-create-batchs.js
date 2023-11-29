@@ -29,6 +29,17 @@ module.exports = {
       campaignKeyword: {
         type: Sequelize.STRING
       },
+      status: {
+        type: Sequelize.BOOLEAN
+      },
+      startDate: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      endDate: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

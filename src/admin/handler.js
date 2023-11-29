@@ -16,7 +16,7 @@ const decryptData = (ciphertext, key) => {
 const getAdmin = async () => {
     try {
         const adminData = await users.findAll();
-        return usersData;
+        return adminData;
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
         throw err;

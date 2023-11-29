@@ -27,7 +27,7 @@ const {
     loginCustomer,
     getCustomerById,
     updateCustomer,
-    getResume,
+    // getResume,
     applyBatch,
     getBatches,
     getBatch,
@@ -143,6 +143,7 @@ const routes = [
     },
 //admin,
     {
+        // getting Admin
         method: 'GET',
         path: '/api/admins',
         handler: getAdmin,
@@ -248,11 +249,11 @@ const routes = [
         path: "/api/customers/:id_customer",
         handler: updateCustomer,
     },
-    {
-        method: "GET",
-        path: "/api/customers/:id_customer/resume",
-        handler: getResume,
-    },
+    // {
+    //     method: "GET",
+    //     path: "/api/customers/:id_customer/resume",
+    //     handler: getResume,
+    // },
     {
         method: "POST",
         path: "/api/customers/:id_customer/batches/:batchId/apply",

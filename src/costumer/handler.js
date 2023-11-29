@@ -190,25 +190,26 @@ const updateCustomer = async (req, h) => {
 };
 
 // Fungsi untuk mengambil resume dari customer
-const getResume = async (req, h) => {
-    const id_user = req.params.id_user;
 
-    try {
-        // Mencari usee di database berdasarkan ID
-        const user = await users.findOne({ where: { id: id_user } });
+// const getResume = async (req, h) => {
+//     const id_user = req.params.id_user;
 
-        if (!usee) {
-            return h.response({ error: "User tidak ditemukan" }).code(404);
-        }
+//     try {
+//         // Mencari usee di database berdasarkan ID
+//         const user = await users.findOne({ where: { id: id_user } });
 
-        const resume = user.resume;
+//         if (!usee) {
+//             return h.response({ error: "User tidak ditemukan" }).code(404);
+//         }
 
-        return h.response(resume).code(200);
-    } catch (err) {
-        console.error('Terjadi kesalahan:', err);
-        throw err;
-    }
-};
+//         const resume = user.resume;
+
+//         return h.response(resume).code(200);
+//     } catch (err) {
+//         console.error('Terjadi kesalahan:', err);
+//         throw err;
+//     }
+// };
 
 // Fungsi untuk mengambil batch yang tersedia
 const getBatches = async (req, h) => {
@@ -384,7 +385,7 @@ module.exports = {
     loginCustomer,
     getCustomerById,
     updateCustomer,
-    getResume,
+    // getResume,
     applyBatch,
     getBatches,
     getBatch,
