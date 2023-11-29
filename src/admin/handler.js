@@ -1,4 +1,4 @@
-const { users } = require('../../models'); // Ganti dengan path yang benar ke file models/users.js
+const { users, batchs, applyments  } = require('../../models'); // Ganti dengan path yang benar ke file models/users.js
 const CryptoJS = require("crypto-js");
 
 const key = "Jobsterific102723"; // Ganti dengan kunci rahasia Anda
@@ -192,15 +192,14 @@ const logoutAdmin = async (request, h) => {
 
 
 /////////////////////////////////////////////////
-      const registerBatch = async (req, h) => {
+    const registerBatch = async (req, h) => {
   try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
+    const token = req.headers['token']; // Ganti sesuai dengan kebutuhan Anda
+    const adminData = decryptData(token, key);
 
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
+    // Periksa admin
+    if (!adminData || !adminData.isAdmin) {
+      return h.response({ message: 'Unauthorized' }).code(401);
     }
 
     const {
@@ -208,28 +207,40 @@ const logoutAdmin = async (request, h) => {
       start_date,
       end_date,
       status,
-    } = req.body;
+    } = req.payload;
 
     // Validasi parameter status
     if (!["open", "closed", "processed"].includes(status)) {
-      return h.status(400).json({ error: "Parameter status harus berupa salah satu dari `open`, `closed`, atau `processed`" });
+      return h.response({ error: "`open`, `closed`, atau `processed`" }).code(400);
     }
 
-    await Batch.create({
-      name,
-      start_date,
-      end_date,
-      status,
+    // Cek apakah user dengan UserId dari admin valid
+    const adminUser = await users.findOne({
+      where: { id: adminData.userId, isAdmin: true },
     });
 
-    return h.response({ message: "Batch berhasil ditambahkan" }).code(201);
+    if (!adminUser) {
+      return h.response({ message: 'Unauthorized' }).code(401);
+    }
+
+    // Buat batch baru
+    const newBatch = await batchs.create({
+      UserId: adminData.userId, // Set UserId dari admin yang membuat batch
+      CampaignName: name,
+      CampaignPeriod: start_date,
+      status,
+      startDate: start_date,
+      endDate: end_date,
+    });
+
+    return h.response({ message: "Batch berhasil ditambahkan", batch: newBatch }).code(201);
   } catch (err) {
     console.error("Terjadi kesalahan:", err);
-    throw err;
+    return h.response({ message: 'Validation Error', err }).code(400);
   }
 };
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Endpoint GET /api/admins/applyments (Get All Applications)
 
 const getApplyments = async (req, h) => {
