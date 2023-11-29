@@ -12,10 +12,14 @@ const decryptData = (ciphertext, key) => {
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 };
 
-// Ambil data dari SQLite
+// Ambil data admin dari database
 const getAdmin = async () => {
     try {
-        const adminData = await users.findAll();
+        const adminData = await users.findAll({
+            where: {
+                isAdmin: true,
+            },
+        });
         return adminData;
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
@@ -23,6 +27,8 @@ const getAdmin = async () => {
     }
 };
 
+
+/////////////////////////////////////////////////////////////////////////////////////
 const registerAdmin = async (req, h) => {
   try {
     const {
