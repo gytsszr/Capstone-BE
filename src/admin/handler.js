@@ -153,12 +153,45 @@ const AdmingetCustomers = async (request, h) => {
 };
 //////////////////////////////////////
 
+const logoutAdmin = async (request, h) => {
+  try {
+    const token = request.headers['token'];
+
+    // Periksa apakah token diberikan
+    if (!token) {
+      return h.response({ message: 'Token is missing' }).code(400);
+    }
+
+    // Dekripsi token untuk mendapatkan data admin
+    const key = 'Jobsterific102723';
+    const adminData = decryptData(token, key);
+
+    // Periksa apakah admin ditemukan
+    if (!adminData || !adminData.isAdmin) {
+      return h.response({ message: 'Unauthorized' }).code(401);
+    }
+
+    // Temukan admin di database berdasarkan email
+    const admin = await users.findOne({
+      where: {
+        email: adminData.email,
+        isAdmin: true,
+      },
+    });
+
+    // Hapus token dari admin di database
+    admin.token = null;
+    await admin.save();
+
+    return h.response({ message: 'Logout success' }).code(200);
+  } catch (err) {
+    console.error('Terjadi kesalahan:', err);
+    return h.response({ message: 'Validation Error', err }).code(400);
+  }
+};
 
 
-
-
-
-
+/////////////////////////////////////////////////
       const registerBatch = async (req, h) => {
   try {
     const token = decryptData(req.headers["Authorization"], key);
@@ -196,21 +229,6 @@ const AdmingetCustomers = async (request, h) => {
   }
 };
 
-const logoutAdmin = async (req, h) => {
-  try {
-    const token = req.headers["Authorization"];
-
-    // Hapus token dari sistem
-    await users.update({
-      token: null,
-    }, { where: { token } });
-
-    return h.response({ message: "Berhasil keluar" }).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
 
 // Endpoint GET /api/admins/applyments (Get All Applications)
 
