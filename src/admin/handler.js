@@ -1,4 +1,4 @@
-const { users, batchs, applyments  } = require('../../models'); // Ganti dengan path yang benar ke file models/users.js
+const { users, applyments, batchs  } = require('../../models');
 const CryptoJS = require("crypto-js");
 
 const key = "Jobsterific102723"; // Ganti dengan kunci rahasia Anda
@@ -11,37 +11,54 @@ const decryptData = (ciphertext, key) => {
   const bytes = CryptoJS.AES.decrypt(ciphertext, key);
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 };
-
-// Ambil data admin dari database
-const getAdmin = async () => {
+//////////////////////////////Bagian user admin//////////////////////////////
+const getAdmin = async (request, h) => {
     try {
-        const adminData = await users.findAll({
-            where: {
-                isAdmin: true,
-            },
-           attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt', 'updatedAt'],
-        });
-        return adminData;
+      // Validate token and check if the user is an admin
+      const token = request.headers['token'];
+      const key = 'Jobsterific102723';
+      const userData = decryptData(token, key);
+  
+      const adminUser = await users.findOne({
+        where: {
+          email: userData.email,
+          isAdmin: true, // Ensure the user is an admin
+        },
+      });
+  
+      if (!adminUser) {
+        return h.response({ message: 'Validation Error' }).code(400);
+      }
+  
+      // Fetch admin data from the database
+      const adminData = await users.findAll({
+        where: {
+          isAdmin: true,
+        },
+      });
+  
+      return h.response(adminData).code(200);
     } catch (err) {
-        console.error('Terjadi kesalahan:', err);
-        throw err;
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error', error: err.message }).code(400);
     }
 };
-
-
-/////////////////////////////////////////////////////////////////////////////////////
 const registerAdmin = async (req, h) => {
-  try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      sex,
-      address,
-    } = req.payload;
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    sex,
+    address,
+    website,
+    description,
+    phone,
+    job,
+  } = req.payload;
 
-    // Validasi data
+  try {
+    // Validate data
     if (!email.includes("@")) {
       return h.response({ error: "Email tidak valid" }).code(400);
     }
@@ -50,7 +67,23 @@ const registerAdmin = async (req, h) => {
       return h.response({ error: "Password harus lebih dari 8 karakter" }).code(400);
     }
 
-    // Membuat admin baru
+    // Decode and validate the admin token
+    const token = req.headers['token'];
+    const key = 'Jobsterific102723';
+    const adminData = decryptData(token, key);
+
+    const adminUser = await users.findOne({
+      where: {
+        email: adminData.email,
+        isAdmin: true,
+      },
+    });
+
+    if (!adminUser) {
+      return h.response({ message: 'Validation Error' }).code(400);
+    }
+
+    // Create a new admin with isAdmin default as true
     const newAdmin = await users.create({
       firstName,
       lastName,
@@ -59,324 +92,365 @@ const registerAdmin = async (req, h) => {
       sex,
       address,
       isAdmin: true,
+      website,
+      description,
+      phone,
+      job,
     });
 
-    // Mengembalikan pesan sukses
-    return h.response({ message: "Admin berhasil dibuat" }).code(201);
+    // Return the newly created admin data
+    return h.response(newAdmin).code(201);
   } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    
-    // Mengembalikan pesan kesalahan internal server error
+    console.error('Terjadi kesalahan:', err);
     return h.response({ error: "Terjadi kesalahan internal server" }).code(500);
   }
 };
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Endpoint POST /api/admins/login (Login Admin)
-
-const loginAdmin = async (req, h) => {
-  const { email, password } = req.payload;
+const loginAdmin = async (request, h) => {
+  const { email, password } = request.payload;
 
   try {
-    // Mencari admin di database berdasarkan email dan password
-    const admin = await users.findOne({
-      where: {
-        email: email,
-        password: password,
-        isAdmin: true,
+      // Ganti "users" dengan model atau tabel yang sesuai untuk admin
+      const admin = await users.findOne({
+          where: {
+              email: email,
+              password: password,
+              isAdmin: true, // Menambahkan kondisi untuk memastikan user adalah admin
+          }
+      });
+
+      if (!admin) {
+          return h.response({ message: 'Validation Error' }).code(400);
       }
-    });
 
-    if (!admin) {
-      return h.response({ message: 'Invalid email or password' }).code(400);
-    }
+      const key = 'Jobsterific102723';
+      const encryptedData = encryptData({
+          email: admin.email,
+          password: admin.password,
+          firstName: admin.firstName
+      }, key);
 
-    // Mengenkripsi data admin
-    const key = 'Jobsterific102723';
-    const encryptedData = encryptData({
-      email: admin.email,
-      password: admin.password,
-      firstName: admin.firstName
-    }, key);
+      admin.token = encryptedData;
+      await admin.save();
 
-    // Menyimpan token ke database
-    admin.token = encryptedData;
-    await admin.save();
+      return h.response({ message: 'Success Admin Login', admin }).code(200);
 
-    // Mengembalikan data terenkripsi
-    return h.response({ message: 'Success Login', admin }).code(200);
   } catch (err) {
-    console.error('Terjadi kesalahan:', err);
-    return h.response({ message: 'Invalid email or password' }).code(400);
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error' }).code(400);
+  }
+};
+const logoutAdmin = async (request, h) => {
+  const token = request.headers['token'];
+
+  try {
+      // Mendekripsi token untuk mendapatkan informasi admin
+      const key = 'Jobsterific102723';
+      const adminData = decryptData(token, key);
+
+      // Validasi admin
+      const admin = await users.findOne({
+          where: {
+              email: adminData.email,
+              isAdmin: true,
+          },
+      });
+
+      if (!admin) {
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
+
+      // Logout admin
+      admin.token = null;
+      await admin.save();
+
+      return h.response({ message: 'Success Logout Admin' }).code(200);
+  } catch (err) {
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error' }).code(400);
   }
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////
-// Endpoint GET /api/admins/customers (Get All Customers)
-
-const AdmingetCustomers = async (request, h) => {
-    const token = request.headers['token'];
-
-    try {
-        const key = 'Jobsterific102723';
-        const adminData = decryptData(token, key);
-
-        // Periksa admin
-        if (!adminData || !adminData.isAdmin) {
-            return h.response({ message: 'Unauthorized' }).code(401);
-        }
-
-        // Mengambil data customer
-        const customers = await users.findAll({
-            where: { isCustomer: true },
-            attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt', 'updatedAt'],
-        });
-
-        // Mengembalikan data customer yang sudah di-dekripsi
-        const decryptedCustomers = customers.map(customer => {
-            return {
-                id: customer.id,
-                firstName: customer.firstName,
-                lastName: customer.lastName,
-                email: customer.email,
-                createdAt: customer.createdAt,
-                updatedAt: customer.updatedAt,
-                // Tambahkan data tambahan jika diperlukan
-            };
-        });
-
-        return h.response(decryptedCustomers).code(200);
-    } catch (err) {
-        console.error('Terjadi kesalahan:', err);
-        return h.response({ message: 'Validation Error', err }).code(400);
-    }
-};
-//////////////////////////////////////
-
-const logoutAdmin = async (request, h) => {
+//////////////////////////////Bagian Applyment admin//////////////////////////////
+const AdmingetApplyments = async (request, h) => {
+  const token = request.headers['token'];
   try {
-    const token = request.headers['token'];
-
-    // Periksa apakah token diberikan
-    if (!token) {
-      return h.response({ message: 'Token is missing' }).code(400);
-    }
-
-    // Dekripsi token untuk mendapatkan data admin
+    // Validate token and check if the user is an admin
     const key = 'Jobsterific102723';
-    const adminData = decryptData(token, key);
+    const userData = decryptData(token, key);
 
-    // Periksa apakah admin ditemukan
-    if (!adminData || !adminData.isAdmin) {
-      return h.response({ message: 'Unauthorized' }).code(401);
-    }
-
-    // Temukan admin di database berdasarkan email
-    const admin = await users.findOne({
+    const user = await users.findOne({
       where: {
-        email: adminData.email,
+        email: userData.email,
         isAdmin: true,
       },
     });
 
-    // Hapus token dari admin di database
-    admin.token = null;
-    await admin.save();
+    if (!user) {
+      return h.response({ message: 'Validation Error' }).code(400);
+    }
 
-    return h.response({ message: 'Logout success' }).code(200);
+    // Get all applyments from the database
+    const allApplyments = await applyments.findAll();
+
+    return h.response({ applyments: allApplyments }).code(200);
   } catch (err) {
-    console.error('Terjadi kesalahan:', err);
-    return h.response({ message: 'Validation Error', err }).code(400);
+    console.error('Error:', err);
+    return h.response({ message: 'Validation Error', error: err.message }).code(400);
+  }
+};
+const AdminDeleteApplyment = async (request, h) => {
+  const token = request.headers['token'];
+
+  try {
+    // Validate token and check if the user is an admin
+    const key = 'Jobsterific102723';
+    const userData = decryptData(token, key);
+
+    const user = await users.findOne({
+      where: {
+        email: userData.email,
+        isAdmin: true,
+      },
+    });
+
+    if (!user) {
+      return h.response({ message: 'Validation Error' }).code(400);
+    }
+
+    // Get applyId from the request parameters
+    const applyId = request.params.applyId;
+
+    // Find the applyment based on applyId
+    const applymentToDelete = await applyments.findOne({
+      where: { applyId: applyId },
+    });
+
+    if (!applymentToDelete) {
+      return h.response({ message: 'Applyment not found' }).code(404);
+    }
+
+    // Delete the applyment
+    await applymentToDelete.destroy();
+
+    return h.response({ message: 'Success Delete Applyment', deletedApplymentId: applyId }).code(200);
+  } catch (err) {
+    console.error('Error:', err);
+    return h.response({ message: 'Validation Error', error: err.message }).code(400);
+  }
+};
+const AdminUpdateApplyment = async (request, h) => {
+  const token = request.headers['token'];
+
+  try {
+    // Validate token and check if the user is an admin
+    const key = 'Jobsterific102723';
+    const userData = decryptData(token, key);
+
+    const user = await users.findOne({
+      where: {
+        email: userData.email,
+        isAdmin: true,
+      },
+    });
+
+    if (!user) {
+      return h.response({ message: 'Validation Error' }).code(400);
+    }
+
+    // Get applyId from the request parameters
+    const applyId = request.params.applyId;
+
+    // Find the applyment based on applyId
+    const applymentToUpdate = await applyments.findOne({
+      where: { applyId: applyId },
+    });
+
+    if (!applymentToUpdate) {
+      return h.response({ message: 'Applyment not found' }).code(404);
+    }
+
+    // Get data for updating from the request payload
+    const {
+      userId,
+      batchId,
+      status
+    } = request.payload;
+
+    // Update applyment data
+    applymentToUpdate.userId = userId;
+    applymentToUpdate.batchId = batchId;
+    applymentToUpdate.status = status;
+
+    await applymentToUpdate.save();
+
+    return h.response({ message: 'Success Update Applyment', updatedApplyment: applymentToUpdate }).code(200);
+  } catch (err) {
+    console.error('Error:', err);
+    return h.response({ message: 'Validation Error', error: err.message }).code(400);
   }
 };
 
 
-/////////////////////////////////////////////////
-    const registerBatch = async (req, h) => {
+
+///////////////////////////////BATCH//////////////////////////////////////////
+const AdminGetBatch = async (request, h) => {
+  const token = request.headers['token'];
+
   try {
-    const token = req.headers['token']; // Ganti sesuai dengan kebutuhan Anda
-    const adminData = decryptData(token, key);
+    // Validate token and check if the user is an admin
+    const key = 'Jobsterific102723';
+    const userData = decryptData(token, key);
 
-    // Periksa admin
-    if (!adminData || !adminData.isAdmin) {
-      return h.response({ message: 'Unauthorized' }).code(401);
+    const user = await users.findOne({
+      where: {
+        email: userData.email,
+        isAdmin: true,
+      },
+    });
+
+    if (!user) {
+      return h.response({ message: 'Validation Error' }).code(400);
     }
 
-    const {
-      name,
-      start_date,
-      end_date,
-      status,
-    } = req.payload;
+    // If validation is successful, get all batches
+    const batches = await batchs.findAll();
 
-    // Validasi parameter status
-    if (!["open", "closed", "processed"].includes(status)) {
-      return h.response({ error: "`open`, `closed`, atau `processed`" }).code(400);
-    }
+    return h.response({ batches }).code(200);
+  } catch (err) {
+    console.error('Error:', err);
+    return h.response({ message: 'Validation Error', error: err.message }).code(400);
+  }
+};
+const AdminUpdateBatch = async (request, h) => {
+  const token = request.headers['token']; // Token dari admin
+  const key = 'Jobsterific102723';
 
-    // Cek apakah user dengan UserId dari admin valid
+  try {
+      // Menggunakan token untuk mendapatkan informasi admin
+      const adminData = decryptData(token, key);
+
+      // Memastikan bahwa user dengan token tersebut adalah admin
+      const admin = await users.findOne({
+          where: {
+              email: adminData.email,
+              isAdmin: true,
+          },
+      });
+
+      if (!admin) {
+          return h.response({ message: 'Unauthorized' }).code(401);
+      }
+
+      const batchId = request.params.batchId;
+      const { campaignName, campaignDesc, campaignPeriod, campaignKeyword, startDate, endDate } = request.payload;
+      const existingBatch = await batchs.findOne({
+          where: {
+              BatchId: batchId,
+          },
+      });
+
+      if (!existingBatch) {
+          return h.response({ message: 'Batch not found' }).code(404);
+      }
+
+      // Memastikan bahwa batch yang akan diupdate dibuat oleh admin yang sedang login
+      if (existingBatch.UserId !== admin.UserId) {
+          return h.response({ message: 'Unauthorized' }).code(401);
+      }
+
+      // Melakukan update atribut batch
+      existingBatch.campaignName = campaignName;
+      existingBatch.campaignDesc = campaignDesc;
+      existingBatch.campaignPeriod = campaignPeriod;
+      existingBatch.campaignKeyword = campaignKeyword;
+      existingBatch.startDate = startDate;
+      existingBatch.endDate = endDate;
+
+      // Set userId to the admin's UserId
+      existingBatch.UserId = admin.UserId;
+
+      await existingBatch.save();
+
+      return h.response({ message: 'Success Update Batch', updatedBatch: existingBatch }).code(200);
+
+  } catch (err) {
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error' }).code(400);
+  }
+};
+const AdminDeleteBatch = async (request, h) => {
+  const token = request.headers['token'];
+  const batchId = request.params.batchId; // Get batchId from URL parameters
+
+  try {
+    // Validate token and check if the user is an admin
+    const key = 'Jobsterific102723';
+    const userData = decryptData(token, key);
+
     const adminUser = await users.findOne({
-      where: { id: adminData.userId, isAdmin: true },
+      where: {
+        email: userData.email,
+        isAdmin: true,
+      },
     });
 
     if (!adminUser) {
-      return h.response({ message: 'Unauthorized' }).code(401);
+      return h.response({ message: 'Validation Error' }).code(400);
     }
 
-    // Buat batch baru
-    const newBatch = await batchs.create({
-      UserId: adminData.userId, // Set UserId dari admin yang membuat batch
-      CampaignName: name,
-      CampaignPeriod: start_date,
-      status,
-      startDate: start_date,
-      endDate: end_date,
+    // Delete batch based on batchId
+    const deletedBatch = await batchs.destroy({
+      where: {
+        batchId: batchId,
+      },
     });
 
-    return h.response({ message: "Batch berhasil ditambahkan", batch: newBatch }).code(201);
+    if (!deletedBatch) {
+      return h.response({ message: 'Batch not found' }).code(404);
+    }
+
+    return h.response({ message: 'Success Delete Batch', deletedBatchId: batchId }).code(200);
   } catch (err) {
-    console.error("Terjadi kesalahan:", err);
+    console.error('Error:', err);
     return h.response({ message: 'Validation Error', err }).code(400);
   }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Endpoint GET /api/admins/applyments (Get All Applications)
 
-const getApplyments = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
 
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
-
-    const page = req.query.page || 1;
-    const per_page = req.query.per_page || 10;
-
-    const applyments = await Applyment.findAll({
-      where: { isProcessed: false },
-      orderBy: {
-        createdAt: "desc",
-      },
-      limit: per_page,
-      offset: (page - 1) * per_page,
-    });
-
-    return h.response(applyments).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
-
-// Endpoint GET /api/admins/applyments/:applyId (Get Application)
-
-const getApplyment = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
-
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
-
-    const applyId = req.params.applyId;
-
-    const applyment = await Applyment.findOne({
-      where: { id: applyId },
-    });
-
-    if (!applyment) {
-      return h.status(404).json({ error: "Lamaran kerja tidak ditemukan" });
-    }
-
-    return h.response(applyment).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
-
+//////////////////////////////Bagian candicate/user//////////////////////////////
 // Endpoint GET /api/admins/candidates (Get All Candidates)
 
-const AdmingetCandidates = async (req, h) => {
+const AdmingetCandidates = async (request, h) => {
+  const token = request.headers['token'];
+
   try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
+    // Validate token and check if the user is an admin
+    const key = 'Jobsterific102723';
+    const userData = decryptData(token, key);
+
+    const user = await users.findOne({
+      where: {
+        email: userData.email,
+        isAdmin: true,
+      },
     });
 
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
+    if (!user) {
+      return h.response({ message: 'Validation Error' }).code(400);
     }
 
-    const page = req.query.page || 1;
-    const per_page = req.query.per_page || 10;
-
+    // If validation is successful, get all candidates
     const candidates = await users.findAll({
-      where: { isCustomer: false },
-      orderBy: {
-        firstName: "asc",
-      },
-      limit: per_page,
-      offset: (page - 1) * per_page,
+      where: { isCustomer: false, isAdmin: false},
     });
 
-    return h.response(candidates).code(200);
+    return h.response({ candidates }).code(200);
   } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
+    console.error('Error:', err);
+    return h.response({ message: 'Validation Error', error: err.message }).code(400);
   }
 };
-
-// Endpoint PUT /api/admins/candidates/{candidateId} (Update Candidate)
-
-const AdminupdateCandidate = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
-
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
-
-    const candidateId = req.params.candidateId;
-    const {
-      firstName,
-      lastName,
-      email,
-      job,
-      address,
-    } = req.body;
-
-    await users.update(
-      {
-        firstName,
-        lastName,
-        email,
-        job,
-        address,
-      },
-      { where: { id: candidateId } }
-    );
-
-    return h.response({ message: "Data kandidat berhasil diperbarui" }).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
-
-// Endpoint PUT /api/admins/candidates/password/{candidateId} (Update Candidate Password)
-
 const AdminupdateCandidatePassword = async (req, h) => {
   try {
     const token = decryptData(req.headers["Authorization"], key);
@@ -409,39 +483,6 @@ const AdminupdateCandidatePassword = async (req, h) => {
     throw err;
   }
 };
-
-// Endpoint PUT /api/admins/candidates/status/{candidateId} (Update Candidate Status)
-
-const AdminupdateCandidateStatus = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
-
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
-
-    const candidateId = req.params.candidateId;
-    const { status } = req.body;
-
-    await users.update(
-      {
-        status,
-      },
-      { where: { id: candidateId } }
-    );
-
-    return h.response({ message: "Status kandidat berhasil diperbarui" }).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
-
-// Endpoint DELETE /api/admins/candidates/{candidateId} (Delete Candidate)
-
 const AdmindeleteCandidate = async (req, h) => {
   try {
     const token = decryptData(req.headers["Authorization"], key);
@@ -466,133 +507,170 @@ const AdmindeleteCandidate = async (req, h) => {
   }
 };
 
-// Endpoint POST /api/admins/customers (Create Customer)
+/////////////////////////////////////////Costumer di Admin///////////////////////////////////////////////////////
 
-const AdmincreateCustomer = async (req, h) => {
+const AdmingetCustomers = async (request, h) => {
+  const token = request.headers['token'];
+
   try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
+      // Validasi token dan periksa apakah pengguna adalah admin
+      const key = 'Jobsterific102723';
+      const userData = decryptData(token, key);
 
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
+      const user = await users.findOne({
+          where: {
+              email: userData.email,
+              isAdmin: true, // Pastikan pengguna adalah admin
+          }
+      });
 
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      address,
-    } = req.body;
+      if (!user) {
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
 
-    // Validasi data
-    if (!email.includes("@")) {
-      return h.status(400).json({ error: "Email tidak valid" });
-    }
+      // Jika validasi berhasil, dapatkan semua customer (pengguna yang merupakan costumer)
+      const customersData = await users.findAll({
+          where: { isCustomer: true },
+          order: [
+              ['firstName', 'ASC'],
+          ],
+      });
 
-    if (password.length < 6) {
-      return h.status(400).json({ error: "Password harus lebih dari 6 karakter" });
-    }
+      return h.response({ customersData }).code(200);
 
-    const newCustomer = await users.create({
-      firstName,
-      lastName,
-      email,
-      password,
-      address,
-      isCustomer: true,
-    });
-
-    return h.response(newCustomer).code(201);
   } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error', err }).code(400);
+  }
+};
+const AdminupdateCustomer = async (request, h) => {
+  const token = request.headers['token'];
+  const id_customer = request.params.customerId; // Mengambil id_customer dari parameter URL
+
+  try {
+      // Validasi token dan periksa apakah pengguna adalah admin
+      const key = 'Jobsterific102723';
+      const userData = decryptData(token, key);
+
+      const adminUser = await users.findOne({
+          where: {
+              email: userData.email,
+              isAdmin: true,
+          }
+      });
+
+      if (!adminUser) {
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
+
+      // Pastikan data customer yang ingin diupdate ada
+      const customerToUpdate = await users.findOne({
+          where: {
+              userId: id_customer,
+              isCustomer: true, // Pastikan yang diupdate adalah customer
+          }
+      });
+
+      if (!customerToUpdate) {
+          return h.response({ message: 'Customer not found' }).code(404);
+      }
+
+      // Mendapatkan data baru dari payload
+      const {
+          firstName,
+          lastName,
+          email,
+          password,
+          job,
+          sex,
+          address,
+          Website,
+          Description,
+          phone,
+      } = request.payload;
+
+      // Melakukan update pada data customer
+      customerToUpdate.firstName = firstName;
+      customerToUpdate.lastName = lastName;
+      customerToUpdate.email = email;
+      customerToUpdate.password = password;
+      customerToUpdate.job = job;
+      customerToUpdate.sex = sex;
+      customerToUpdate.address = address;
+      customerToUpdate.Website = Website;
+      customerToUpdate.Description = Description;
+      customerToUpdate.phone = phone;
+
+      await customerToUpdate.save();
+
+      return h.response({ message: 'Success Update Customer', customerToUpdate }).code(200);
+  } catch (err) {
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error', err }).code(400);
+  }
+};
+const AdmindeleteCustomer = async (request, h) => {
+  const token = request.headers['token'];
+  const customerId = request.params.customerId; // Mengambil ID customer dari URL
+
+  try {
+      // Validasi token dan periksa apakah pengguna adalah admin
+      const key = 'Jobsterific102723';
+      const userData = decryptData(token, key);
+
+      const user = await users.findOne({
+          where: {
+              email: userData.email,
+              isAdmin: true, // Pastikan pengguna adalah admin
+          }
+      });
+
+      if (!user) {
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
+
+      // Hapus customer berdasarkan ID
+      const deletedCustomer = await users.destroy({
+          where: {
+              userId: customerId,
+              isCustomer: true, // Pastikan yang dihapus adalah customer
+          }
+      });
+
+      if (!deletedCustomer) {
+          return h.response({ message: 'Customer not found' }).code(404);
+      }
+
+      return h.response({ message: 'Success Delete Customer', deletedCustomerId: customerId }).code(200);
+  } catch (err) {
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Validation Error', err }).code(400);
   }
 };
 
-// Endpoint PUT /api/admins/customers/{customerId} (Update Customer)
+module.exports = AdmindeleteCustomer;
 
-const AdminupdateCustomer = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
-
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
-
-    const customerId = req.params.customerId;
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      address,
-    } = req.body;
-
-    await users.update(
-      {
-        firstName,
-        lastName,
-        email,
-        password,
-        address,
-      },
-      { where: { id: customerId } }
-    );
-
-    return h.response({ message: "Data Candicate berhasil diperbarui" }).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
-
-// Endpoint DELETE /api/admins/customers/{customerId} (Delete Customer)
-
-const AdmindeleteCustomer = async (req, h) => {
-  try {
-    const token = decryptData(req.headers["Authorization"], key);
-    const admin = await users.findOne({
-      where: { token },
-    });
-
-    if (!admin) {
-      return h.status(401).json({ error: "Token tidak valid" });
-    }
-
-    const customerId = req.params.customerId;
-
-    await users.destroy({
-      where: { id: customerId, isCustomer: true },
-    });
-
-    return h.response({ message: "Customer berhasil dihapus" }).code(200);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
 
 module.exports = {
   getAdmin,
   registerAdmin,
   loginAdmin,
-  AdmingetCustomers,
-  registerBatch,
-  getApplyments,
-  getApplyment,
   logoutAdmin,
-  AdmindeleteCandidate,
-  AdmincreateCustomer,
+ 
+  AdminGetBatch,
+  AdminUpdateBatch,
+  AdminDeleteBatch,
+   
+  AdmingetApplyments,
+  AdminUpdateApplyment,
+  AdminDeleteApplyment,
+
+  AdmingetCustomers,
   AdminupdateCustomer,
   AdmindeleteCustomer,
+
   AdmingetCandidates,
-  AdminupdateCandidate,
+  AdmindeleteCandidate,
   AdminupdateCandidatePassword,
-  AdminupdateCandidateStatus,
+  
 };
