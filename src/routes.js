@@ -6,17 +6,23 @@ const {
     getAdmin,
     registerAdmin,
     loginAdmin,
-    AdmingetCustomers,
-    registerBatch,
     logoutAdmin,
-    getApplyments,
-    getApplyment,
+
+   
+    AdminGetBatch,
+    AdminUpdateBatch,
+    AdminDeleteBatch,
+   
+
+    AdmingetApplyments,
+    AdminUpdateApplyment,
+    AdminDeleteApplyment,
+
     AdmingetCandidates,
-    AdminupdateCandidate,
     AdminupdateCandidatePassword,
-    AdminupdateCandidateStatus,
     AdmindeleteCandidate,
-    AdmincreateCustomer,
+
+    AdmingetCustomers,
     AdminupdateCustomer,
     AdmindeleteCustomer,
         } = require('./admin/handler');
@@ -27,7 +33,7 @@ const {
     loginCustomer,
     getCustomerById,
     updateCustomer,
-    // getResume,
+    getResumeBatch,
     applyBatch,
     getBatches,
     getBatch,
@@ -37,7 +43,6 @@ const {
         } = require("./costumer/handler");
 
       
-
 const routes = [
     //user
     {
@@ -159,54 +164,74 @@ const routes = [
         handler: loginAdmin,
     },
     {
+        method: 'POST',
+        path: '/api/admins/logout',
+        handler: logoutAdmin,
+    },
+   
+
+////Batch Admin
+
+
+    {
         method: 'GET',
-        path: '/api/admins/customers',
-        handler: AdmingetCustomers,
+        path: '/api/admins/batch',
+        handler: AdminGetBatch,
     },
     {
-        method: 'POST',
-        path: '/api/admins/batch',
-        handler: registerBatch,
+        method: 'PUT',
+        path: '/api/admins/batch/{batchId}',
+        handler: AdminUpdateBatch,
     },
+    {
+        method: 'DELETE',
+        path: '/api/admins/batch/{batchId}',
+        handler: AdminDeleteBatch,
+    },
+
+
+////Applyments Admin
     {
         method: 'GET',
         path: '/api/admins/applyments',
-        handler: getApplyments,
+        handler: AdmingetApplyments,
     },
     {
-        method: 'GET',
+        method: 'PUT',
         path: '/api/admins/applyments/{applyId}',
-        handler: getApplyment,
+        handler: AdminUpdateApplyment,
     },
+     {
+        method: 'DELETE',
+        path: '/api/admins/applyments/{applyId}',
+        handler: AdminDeleteApplyment,
+
+    },
+
+////Candidate Admin
     {
         method: 'GET',
         path: '/api/admins/candidates',
         handler: AdmingetCandidates,
     },
-    {
-        method: 'PUT',
-        path: '/api/admins/candidates/{candidateId}',
-        handler: AdminupdateCandidate,
-    },
+ 
     {
         method: 'PUT',
         path: '/api/admins/candidates/password/{candidateId}',
         handler: AdminupdateCandidatePassword,
     },
     {
-        method: 'PUT',
-        path: '/api/admins/candidates/status/{candidateId}',
-        handler: AdminupdateCandidateStatus,
-    },
-    {
         method: 'DELETE',
         path: '/api/admins/candidates/{candidateId}',
         handler: AdmindeleteCandidate,
     },
+
+    ////Costumer Admin
+ 
     {
-        method: 'POST',
+        method: 'GET',
         path: '/api/admins/customers',
-        handler: AdmincreateCustomer,
+        handler: AdmingetCustomers,
     },
     {
         method: 'PUT',
@@ -218,12 +243,10 @@ const routes = [
         path: '/api/admins/customers/{customerId}',
         handler: AdmindeleteCustomer,
     },
-    {
-        method: 'POST',
-        path: '/api/admins/logout',
-        handler: logoutAdmin,
-    },
-//Costumer
+   
+
+
+    //Costumer
     {
         method: "GET",
         path: "/api/customers",
@@ -262,7 +285,7 @@ const routes = [
     {
         method: "GET",
         path: "/api/customers/:id_customer/resume",
-        handler: getResume,
+        handler: getResumeBatch,
     },
     {
         method: "GET",
