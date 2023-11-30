@@ -21,22 +21,7 @@ const {
     AdmindeleteCustomer,
         } = require('./admin/handler');
 
-const {
-    getCustomer,
-    registerCustomer,
-    loginCustomer,
-    getCustomerById,
-    updateCustomer,
-    getResumeBatch,
-    applyBatch,
-    getBatches,
-    getBatch,
-    updateApplyment,
-    deleteApplyment,
-    customerLogout,
-        } = require("./costumer/handler");
-
-      
+const {getCustomer, registerCustomer, loginCustomer, getCustomerById, updateCustomer, getResumeBatch, applyBatch, customerLogout} = require("./costumer/handler");
 
 const routes = [
     //user
@@ -241,48 +226,28 @@ const routes = [
     },
     {
         method: "GET",
-        path: "/api/customers/:id_customer",
+        path: "/api/customers/:id",
         handler: getCustomerById,
     },
     {
         method: "PUT",
-        path: "/api/customers/:id_customer",
+        path: "/api/customers/:id",
         handler: updateCustomer,
     },
-    // {
-    //     method: "GET",
-    //     path: "/api/customers/:id_customer/resume",
-    //     handler: getResume,
-    // },
+    {
+        method: "GET",
+        path: "/api/customers/:id/resume",
+        handler: getResumeBatch,
+    },
     {
         method: "POST",
-        path: "/api/customers/:id_customer/batches/:batchId/apply",
+        path: "/api/apply-batch/:batchId",
         handler: applyBatch,
     },
     {
         method: "GET",
         path: "/api/customers/:id_customer/resume",
         handler: getResumeBatch,
-    },
-    {
-        method: "GET",
-        path: "/api/customers/batches",
-        handler: getBatches,
-    },
-    {
-        method: "GET",
-        path: "/api/customers/batches/:batchId",
-        handler: getBatch,
-    },
-    {
-        method: "PUT",
-        path: "/api/customers/:id_customer/applyments/:applyment_id",
-        handler: updateApplyment,
-    },
-    {
-        method: "DELETE",
-        path: "/api/customers/:id_customer/applyments/:applyment_id",
-        handler: deleteApplyment,
     },
     {
         method: "POST",
