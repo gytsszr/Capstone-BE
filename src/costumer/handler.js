@@ -295,6 +295,122 @@ const applyBatch = async (req, h) => {
     throw err;
   }
 };
+// Fungsi untuk membuat campaign
+const createCampaign = async (req, h) => {
+  // Extract token from request headers
+  const token = req.headers['token'];
+
+  // Extract campaign data from request payload
+  const {
+    campaignName,
+    campaignDesc,
+    campaignPeriod,
+    campaignKeyword,
+    status,
+    startDate,
+    endDate
+  } = req.payload;
+
+  try {
+    // Decrypt token
+    const key = 'Jobsterific102723';
+    const customerData = decryptData(token, key);
+
+    // Validate token
+    if (!customerData || customerData.email === '') {
+      return h.response({ message: 'Invalid token' }).code(401);
+    }
+
+    // Find customer based on token's email
+    const customer = await users.findOne({
+      where: {
+        email: customerData.email
+      }
+    });
+
+    // If customer not found, send 404 response
+    if (!customer) {
+      return h.response({ message: 'Customer not found' }).code(404);
+    }
+
+    // Create new campaign
+    const batch = new Batch({
+      campaignName,
+      campaignDesc,
+      campaignPeriod,
+      campaignKeyword,
+      status,
+      startDate,
+      endDate,
+      userId: customer.id,
+      isCostumer: true
+    });
+
+    // Save new campaign
+    await batch.save();
+
+    // Send successful create response with new campaign data
+    return h.response({ message: 'Success Create', batch }).code(200);
+  } catch (err) {
+    console.error('Terjadi kesalahan:', err);
+    return h.response({ message: 'Internal server error' }).code(500);
+  }
+};
+
+// Fungsi untuk menghapus campaign
+const deleteCampaign = async (req, h) => {
+  // Extract token from request headers
+  const token = req.headers['token'];
+
+  // Extract campaign ID from request path
+  const batchId = req.params.batchId;
+
+  try {
+    // Decrypt token
+    const key = 'Jobsterific102723';
+    const customerData = decryptData(token, key);
+
+    // Validate token
+    if (!customerData || customerData.email === '') {
+      return h.response({ message: 'Invalid token' }).code(401);
+    }
+
+    // Find customer based on token's email
+    const customer = await users.findOne({
+      where: {
+        email: customerData.email
+      }
+    });
+
+    // If customer not found, send 404 response
+    if (!customer) {
+      return h.response({ message: 'Customer not found' }).code(404);
+    }
+
+    // Find campaign based on batch ID
+    const batch = await batch.findOne({
+      where: {
+        id: batchId,
+        userId: customer.id,
+        isCostumer: true
+      }
+    });
+
+    // If campaign not found, send 404 response
+    if (!batch) {
+      return h.response({ message: 'Campaign not found' }).code(404);
+    }
+
+    // Delete campaign
+    await batch.remove();
+
+    // Send successful delete response
+    return h.response({ message: 'Success Delete' }).code(200);
+  } catch (err) {
+    console.error('Terjadi kesalahan:', err);
+    return h.response({ message: 'Internal server error' }).code(500);
+  }
+};
 
 // Fungsi untuk melakukan logout customer
 const customerLogout = async (req, h) => {
