@@ -147,7 +147,7 @@ const routes = [
     {
         // getting Admin
         method: 'GET',
-        path: '/api/admins',
+        path: '/api/admin',
         handler: getAdmin,
     },
     {
