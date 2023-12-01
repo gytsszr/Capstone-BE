@@ -648,8 +648,6 @@ const AdmindeleteCustomer = async (request, h) => {
   }
 };
 
-module.exports = AdmindeleteCustomer;
-
 
 module.exports = {
   getAdmin,
