@@ -21,7 +21,19 @@ const {
     AdmindeleteCustomer,
         } = require('./admin/handler');
 
-const {getCustomer, registerCustomer, loginCustomer, getCustomerById, updateCustomer, getResumeBatch, applyBatch, customerLogout} = require("./costumer/handler");
+const { 
+    getCustomer,
+    registerCustomer,
+    loginCustomer,
+    getCustomerById,
+    updateCustomer,
+    getResumeBatch,
+    applyBatch,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+    customerLogout,
+} = require("./costumer/handler");
 
 const routes = [
     //user
@@ -226,28 +238,38 @@ const routes = [
     },
     {
         method: "GET",
-        path: "/api/customers/:id",
+        path: "/api/customers/:customerId",
         handler: getCustomerById,
     },
     {
         method: "PUT",
-        path: "/api/customers/:id",
+        path: "/api/customers/:customerId",
         handler: updateCustomer,
     },
     {
         method: "GET",
-        path: "/api/customers/:id/resume",
+        path: "/api/customers/batches/:batchId/resumes",
         handler: getResumeBatch,
     },
     {
         method: "POST",
-        path: "/api/apply-batch/:batchId",
+        path: "/api/customers/applyments",
         handler: applyBatch,
     },
     {
-        method: "GET",
-        path: "/api/customers/:id_customer/resume",
-        handler: getResumeBatch,
+        method: "POST",
+        path: "/api/customers/campaigns",
+        handler: createCampaign,
+    },
+    {
+        method: "PUT",
+        path: "/api/customers/campaigns/:batchId",
+        handler: updateCampaign,
+    },
+    {
+        method: "DELETE",
+        path: "/api/customers/campaigns/:batchId",
+        handler: deleteCampaign,
     },
     {
         method: "POST",
