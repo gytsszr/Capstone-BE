@@ -27,7 +27,7 @@ const {
     AdmindeleteCustomer,
         } = require('./admin/handler');
 
-const {
+const { 
     getCustomer,
     registerCustomer,
     loginCustomer,
@@ -35,14 +35,11 @@ const {
     updateCustomer,
     getResumeBatch,
     applyBatch,
-    getBatches,
-    getBatch,
-    updateApplyment,
-    deleteApplyment,
-    customerLogout,
-        } = require("./costumer/handler");
-
-      
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+    customerLogout
+} = require("./costumer/handler");
 const routes = [
     //user
     {
@@ -264,48 +261,38 @@ const routes = [
     },
     {
         method: "GET",
-        path: "/api/customers/:id_customer",
+        path: "/api/customers/:customerId",
         handler: getCustomerById,
     },
     {
         method: "PUT",
-        path: "/api/customers/:id_customer",
+        path: "/api/customers/:customerId",
         handler: updateCustomer,
-    },
-    // {
-    //     method: "GET",
-    //     path: "/api/customers/:id_customer/resume",
-    //     handler: getResume,
-    // },
-    {
-        method: "POST",
-        path: "/api/customers/:id_customer/batches/:batchId/apply",
-        handler: applyBatch,
     },
     {
         method: "GET",
-        path: "/api/customers/:id_customer/resume",
+        path: "/api/customers/batches/:batchId/resumes",
         handler: getResumeBatch,
     },
     {
-        method: "GET",
-        path: "/api/customers/batches",
-        handler: getBatches,
+        method: "POST",
+        path: "/api/customers/applyments",
+        handler: applyBatch,
     },
     {
-        method: "GET",
-        path: "/api/customers/batches/:batchId",
-        handler: getBatch,
+        method: "POST",
+        path: "/api/customers/campaigns",
+        handler: createCampaign,
     },
     {
         method: "PUT",
-        path: "/api/customers/:id_customer/applyments/:applyment_id",
-        handler: updateApplyment,
+        path: "/api/customers/campaigns/:batchId",
+        handler: updateCampaign,
     },
     {
         method: "DELETE",
-        path: "/api/customers/:id_customer/applyments/:applyment_id",
-        handler: deleteApplyment,
+        path: "/api/customers/campaigns/:batchId",
+        handler: deleteCampaign,
     },
     {
         method: "POST",
