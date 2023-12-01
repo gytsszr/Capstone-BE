@@ -228,15 +228,15 @@ const getResumeBatch = async (req, h) => {
     }
 
     // Mendapatkan ID user dari token
-    const user_id = await getUser(token);
+    const userId = await getUser(token);
 
-    if (!user_id) {
+    if (!userId) {
       return h.response({ error: "User tidak valid" }).code(401);
     }
 
     // Mencari resume berdasarkan ID user
     const resume = await resumes.findOne({
-      where: { user_id: user_id },
+      where: { userId: userId },
     });
 
     if (!resume) {
@@ -253,12 +253,20 @@ const getResumeBatch = async (req, h) => {
 // Fungsi untuk mengajukan lamaran ke suatu batch
 const applyBatch = async (req, h) => {
   try {
-    // Mendapatkan token dari header request
     const token = req.headers["token"];
+    const key = 'Jobsterific102723';
+    const customerData = decryptData(token, key);
 
-    // Mencari customer berdasarkan token dan isCustomer
+    if (!verifyToken(token, key)) {
+      return h.response({ error: "Invalid token" }).code(401);
+    }
+
+    // Mendapatkan ID customer dari token
+    const userId = customerData.id;
+
+    // Mencari customer berdasarkan ID
     const customer = await users.findOne({
-      where: { token, isCustomer: true },
+      where: { id: userId, isCustomer: true },
     });
 
     if (!customer) {
@@ -274,7 +282,7 @@ const applyBatch = async (req, h) => {
     });
 
     if (!batch) {
-      return h.response({ error: "Batch tidak ditemukan" }).code(404);
+      return h.response({ error: "Batch tidak ditemukan" }).code(400);
     }
 
     // Memeriksa apakah status batch masih "open"
@@ -295,6 +303,7 @@ const applyBatch = async (req, h) => {
     throw err;
   }
 };
+
 // Fungsi untuk membuat campaign
 const createCampaign = async (req, h) => {
   // Extract token from request headers
@@ -351,6 +360,81 @@ const createCampaign = async (req, h) => {
 
     // Send successful create response with new campaign data
     return h.response({ message: 'Success Create', batch }).code(200);
+  } catch (err) {
+    console.error('Terjadi kesalahan:', err);
+    return h.response({ message: 'Internal server error' }).code(500);
+  }
+};
+
+// Fungsi untuk memperbarui data campaign yang ada
+const updateCampaign = async (req, h) => {
+  // Extract token from request headers
+  const token = req.headers['token'];
+
+  // Extract campaign ID from request path
+  const batchId = req.params.batchId;
+
+  // Extract campaign data from request payload
+  const {
+    campaignName,
+    campaignDesc,
+    campaignPeriod,
+    campaignKeyword,
+    status,
+    startDate,
+    endDate
+  } = req.payload;
+
+  try {
+    // Decrypt token
+    const key = 'Jobsterific102723';
+    const customerData = decryptData(token, key);
+
+    // Validate token
+    if (!customerData || customerData.email === '') {
+      return h.response({ message: 'Invalid token' }).code(401);
+    }
+
+    // Find customer based on token's email
+    const customer = await users.findOne({
+      where: {
+        email: customerData.email
+      }
+    });
+
+    // If customer not found, send 404 response
+    if (!customer) {
+      return h.response({ message: 'Customer not found' }).code(404);
+    }
+
+    // Find campaign based on batch ID
+    const batch = await batch.findOne({
+      where: {
+        id: batchId,
+        userId: customer.id,
+        isCostumer: true
+      }
+    });
+
+    // If campaign not found, send 404 response
+    if (!batch) {
+      return h.response({ message: 'Campaign not found' }).code(404);
+    }
+
+    // Update campaign data
+    batch.campaignName = campaignName;
+    batch.campaignDesc = campaignDesc;
+    batch.campaignPeriod = campaignPeriod;
+    batch.campaignKeyword = campaignKeyword;
+    batch.status = status;
+    batch.startDate = startDate;
+    batch.endDate = endDate;
+
+    // Save updated campaign
+    await batch.save();
+
+    // Send successful update response
+    return h.response({ message: 'Success Update' }).code(200);
   } catch (err) {
     console.error('Terjadi kesalahan:', err);
     return h.response({ message: 'Internal server error' }).code(500);
@@ -446,6 +530,9 @@ module.exports = {
     getCustomerById,
     updateCustomer,
     getResumeBatch,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
     applyBatch,
     customerLogout,
 };
