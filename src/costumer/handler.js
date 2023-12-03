@@ -96,14 +96,14 @@ const loginCustomer = async (req, h) => {
 
         // Mengenkripsi data customer
         const key = 'Jobsterific102723';
-        const encryptedData = encryptData({
+        const customerData = encryptData({
             email: customer.email,
             password: customer.password,
             firstName: customer.firstName
         }, key);
 
         // Menyimpan token ke database
-        customer.token = encryptedData;
+        customer.token = customerData;
         await customer.save();
 
         // Mengembalikan data terenkripsi
@@ -125,21 +125,17 @@ const getCustomerById = async (req, h) => {
     const key = 'Jobsterific102723';
     const customerData = decryptData(token, key);
 
-    // Find customer by ID and check if customer is valid
+    // Find customer by email and check if customer is valid
     const customer = await users.findOne({
       where: {
-        userId: customerData.userId,
+        email: customerData.email,
         isCustomer: true,
       },
     });
 
-    if (!customer) {
-      return h.response({ message: 'Validation Error' }).code(401);
-    }
-
-    if (customer.userId !== customerData.userId) {
-      return h.response({ message: 'Invalid token' }).code(401);
-    }
+    if (!customer && customer.email != customerData.email) {
+            return h.response({ message: 'Validation Error' }).code(400);
+        }
 
     return h.response({
       customer,
@@ -176,8 +172,7 @@ const updateCustomer = async (req, h) => {
     // Find customer based on token's email
     const customer = await users.findOne({
       where: {
-        userId: customerData.userId,
-        isCustomer: true,
+        token: token,
       },
     });
 
@@ -207,6 +202,33 @@ const updateCustomer = async (req, h) => {
     return h.response({ message: 'Internal server error' }).code(500);
   }
 };
+
+// Fungsi untuk melakukan logout customer
+const customerLogout = async (req, h) => {
+    const token = req.headers['token'];
+
+    try {
+        // Mencari customer berdasarkan token
+        const customer = await users.findOne({
+            where: {
+                token: token
+            }
+        });
+
+        if (!customer) {
+            return h.response({ message: 'Validation Error' }).code(400);
+        }
+
+        // Menghapus token dari database
+        customer.token = null;
+        await customer.save();
+
+        return h.response({ message: 'Success LogOut' }).code(200);
+    } catch (err) {
+        console.error('Terjadi kesalahan:', err);
+        return h.response({ message: 'Validation Error', err }).code(400);
+    }
+}
 
 // Fungsi untuk membuat campaign
 const createCampaign = async (req, h) => {
@@ -316,7 +338,7 @@ const updateCampaign = async (req, h) => {
     // Find campaign based on batch ID
     const batch = await batch.findOne({
       where: {
-        id: batchId,
+        batchId: batchId,
         userId: customer.userId,
         isCustomer: true,
       },
@@ -381,7 +403,7 @@ const deleteCampaign = async (req, h) => {
     // Find campaign based on batch ID
     const batch = await batch.findOne({
       where: {
-        id: batchId,
+        batchId: batchId,
         userId: customer.id,
         isCustomer: true,
       },
@@ -402,33 +424,6 @@ const deleteCampaign = async (req, h) => {
     return h.response({ message: 'Internal server error' }).code(500);
   }
 };
-
-// Fungsi untuk melakukan logout customer
-const customerLogout = async (req, h) => {
-    const token = req.headers['token'];
-
-    try {
-        // Mencari customer berdasarkan token
-        const customer = await users.findOne({
-            where: {
-                token: token
-            }
-        });
-
-        if (!customer) {
-            return h.response({ message: 'Validation Error' }).code(400);
-        }
-
-        // Menghapus token dari database
-        customer.token = null;
-        await customer.save();
-
-        return h.response({ message: 'Success LogOut' }).code(200);
-    } catch (err) {
-        console.error('Terjadi kesalahan:', err);
-        return h.response({ message: 'Validation Error', err }).code(400);
-    }
-}
 
 module.exports = {
     getCustomer,
