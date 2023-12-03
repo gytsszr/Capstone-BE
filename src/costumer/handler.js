@@ -1,4 +1,4 @@
-const { users, batchs, applyments, resumes } = require('../../models');
+const { users, batchs, applyments } = require('../../models');
 const CryptoJS = require('crypto-js');
 
 // Fungsi untuk mengenkripsi data menggunakan AES
@@ -117,40 +117,36 @@ const loginCustomer = async (req, h) => {
 
 // Fungsi untuk mengambil data customer berdasarkan ID
 const getCustomerById = async (req, h) => {
-  // Mendapatkan token dari header request
+  // Get token from header
   const token = req.headers['token'];
 
   try {
-    // Mendecrypt token
+    // Decrypt token
     const key = 'Jobsterific102723';
     const customerData = decryptData(token, key);
 
-    // Memeriksa apakah token valid
-    if (!customerData || customerData.email === '') {
-      return h.response({ message: 'Invalid token' }).code(401);
-    }
-
-    // Mencari customer berdasarkan ID customer
+    // Find customer by ID and check if customer is valid
     const customer = await users.findOne({
       where: {
-        id: customerData.id,
+        userId: customerData.userId,
         isCustomer: true,
       },
     });
 
-    // Jika customer tidak ditemukan, kirim respons 404
     if (!customer) {
-      return h.response({ message: 'Customer not found' }).code(404);
+      return h.response({ message: 'Validation Error' }).code(401);
     }
 
-    // Jika customer ditemukan, kirim respons sukses dengan data customer
+    if (customer.userId !== customerData.userId) {
+      return h.response({ message: 'Invalid token' }).code(401);
+    }
+
     return h.response({
       customer,
     }).code(200);
-
   } catch (err) {
-    console.error('Terjadi kesalahan:', err);
-    return h.response({ message: 'Internal server error' }).code(500);
+    console.error('Error:', err.message);
+    return h.response({ message: err.message || 'Internal server error' }).code(500);
   }
 };
 
@@ -176,17 +172,13 @@ const updateCustomer = async (req, h) => {
     // Decrypt token
     const key = 'Jobsterific102723';
     const customerData = decryptData(token, key);
-
-    // Validate token
-    if (!customerData || customerData.email === '') {
-      return h.response({ message: 'Invalid token' }).code(401);
-    }
-
+      
     // Find customer based on token's email
     const customer = await users.findOne({
       where: {
-        email: customerData.email
-      }
+        userId: customerData.userId,
+        isCustomer: true,
+      },
     });
 
     // If customer not found, send 404 response
@@ -216,94 +208,6 @@ const updateCustomer = async (req, h) => {
   }
 };
 
-// Fungsi untuk mengambil resume yang berasal dari user
-const getResumeBatch = async (req, h) => {
-  try {
-    // Mendapatkan token dari header request
-    const token = req.headers["token"];
-
-    // Validasi token secara menyeluruh
-    if (!verifyToken(token, "Jobsterific102723")) {
-      return h.response({ error: "Token tidak valid" }).code(401);
-    }
-
-    // Mendapatkan ID user dari token
-    const userId = await getUser(token);
-
-    if (!userId) {
-      return h.response({ error: "User tidak valid" }).code(401);
-    }
-
-    // Mencari resume berdasarkan ID user
-    const resume = await resumes.findOne({
-      where: { userId: userId },
-    });
-
-    if (!resume) {
-      return h.response({ error: "Resume tidak ditemukan" }).code(404);
-    }
-
-    return h.response(resume).code(200);
-  } catch (err) {
-    console.error('Terjadi kesalahan:', err);
-    throw err;
-  }
-};
-
-// Fungsi untuk mengajukan lamaran ke suatu batch
-const applyBatch = async (req, h) => {
-  try {
-    const token = req.headers["token"];
-    const key = 'Jobsterific102723';
-    const customerData = decryptData(token, key);
-
-    if (!verifyToken(token, key)) {
-      return h.response({ error: "Invalid token" }).code(401);
-    }
-
-    // Mendapatkan ID customer dari token
-    const userId = customerData.id;
-
-    // Mencari customer berdasarkan ID
-    const customer = await users.findOne({
-      where: { id: userId, isCustomer: true },
-    });
-
-    if (!customer) {
-      return h.response({ error: "Customer tidak valid" }).code(401);
-    }
-
-    // Mendapatkan ID batch dari parameter route
-    const batchId = req.params.batchId;
-
-    // Mencari batch berdasarkan ID
-    const batch = await batchs.findOne({
-      where: { id: batchId },
-    });
-
-    if (!batch) {
-      return h.response({ error: "Batch tidak ditemukan" }).code(400);
-    }
-
-    // Memeriksa apakah status batch masih "open"
-    if (batch.status !== "open") {
-      return h.response({ error: "Batch sudah ditutup" }).code(400);
-    }
-
-    // Membuat entri applyment baru
-    const applyment = await applyments.create({
-      userId: customer.id,
-      batchid: batch.id,
-      status: "pending",
-    });
-
-    return h.response({ message: "Lamaran berhasil diajukan" }).code(201);
-  } catch (err) {
-    console.error("Terjadi kesalahan:", err);
-    throw err;
-  }
-};
-
 // Fungsi untuk membuat campaign
 const createCampaign = async (req, h) => {
   // Extract token from request headers
@@ -317,7 +221,7 @@ const createCampaign = async (req, h) => {
     campaignKeyword,
     status,
     startDate,
-    endDate
+    endDate,
   } = req.payload;
 
   try {
@@ -333,8 +237,9 @@ const createCampaign = async (req, h) => {
     // Find customer based on token's email
     const customer = await users.findOne({
       where: {
-        email: customerData.email
-      }
+        email: customerData.email,
+        isCustomer: true,
+      },
     });
 
     // If customer not found, send 404 response
@@ -351,8 +256,8 @@ const createCampaign = async (req, h) => {
       status,
       startDate,
       endDate,
-      userId: customer.id,
-      isCostumer: true
+      userId: customer.userId,
+      isCustomer: true,
     });
 
     // Save new campaign
@@ -382,7 +287,7 @@ const updateCampaign = async (req, h) => {
     campaignKeyword,
     status,
     startDate,
-    endDate
+    endDate,
   } = req.payload;
 
   try {
@@ -398,8 +303,9 @@ const updateCampaign = async (req, h) => {
     // Find customer based on token's email
     const customer = await users.findOne({
       where: {
-        email: customerData.email
-      }
+        email: customerData.email,
+        isCustomer: true,
+      },
     });
 
     // If customer not found, send 404 response
@@ -411,9 +317,9 @@ const updateCampaign = async (req, h) => {
     const batch = await batch.findOne({
       where: {
         id: batchId,
-        userId: customer.id,
-        isCostumer: true
-      }
+        userId: customer.userId,
+        isCustomer: true,
+      },
     });
 
     // If campaign not found, send 404 response
@@ -462,8 +368,9 @@ const deleteCampaign = async (req, h) => {
     // Find customer based on token's email
     const customer = await users.findOne({
       where: {
-        email: customerData.email
-      }
+        email: customerData.email,
+        isCustomer: true,
+      },
     });
 
     // If customer not found, send 404 response
@@ -476,13 +383,13 @@ const deleteCampaign = async (req, h) => {
       where: {
         id: batchId,
         userId: customer.id,
-        isCostumer: true
-      }
+        isCustomer: true,
+      },
     });
 
     // If campaign not found, send 404 response
     if (!batch) {
-      return h.response({ message: 'Campaign not found' }).code(404);
+      return h.response({ message: 'Batch not found' }).code(404);
     }
 
     // Delete campaign
@@ -529,10 +436,8 @@ module.exports = {
     loginCustomer,
     getCustomerById,
     updateCustomer,
-    getResumeBatch,
     createCampaign,
     updateCampaign,
     deleteCampaign,
-    applyBatch,
     customerLogout,
 };

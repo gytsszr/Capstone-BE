@@ -33,8 +33,6 @@ const {
     loginCustomer,
     getCustomerById,
     updateCustomer,
-    getResumeBatch,
-    applyBatch,
     createCampaign,
     updateCampaign,
     deleteCampaign,
@@ -268,16 +266,6 @@ const routes = [
         method: "PUT",
         path: "/api/customers/:customerId",
         handler: updateCustomer,
-    },
-    {
-        method: "GET",
-        path: "/api/customers/batches/:batchId/resumes",
-        handler: getResumeBatch,
-    },
-    {
-        method: "POST",
-        path: "/api/customers/applyments",
-        handler: applyBatch,
     },
     {
         method: "POST",
