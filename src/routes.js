@@ -259,12 +259,12 @@ const routes = [
     },
     {
         method: "GET",
-        path: "/api/customers/:customerId",
+        path: "/api/customers/{customerId}",
         handler: getCustomerById,
     },
     {
         method: "PUT",
-        path: "/api/customers/:customerId",
+        path: "/api/customers/{customerId}",
         handler: updateCustomer,
     },
     {
@@ -274,12 +274,12 @@ const routes = [
     },
     {
         method: "PUT",
-        path: "/api/customers/campaigns/:batchId",
+        path: "/api/customers/campaigns/{batchId}",
         handler: updateCampaign,
     },
     {
         method: "DELETE",
-        path: "/api/customers/campaigns/:batchId",
+        path: "/api/customers/campaigns/{batchId}",
         handler: deleteCampaign,
     },
     {
