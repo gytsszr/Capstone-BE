@@ -267,6 +267,9 @@ const routes = [
         path: "/api/customers/{customerId}",
         handler: updateCustomer,
     },
+
+//campaign
+
     {
         method: "POST",
         path: "/api/customers/campaigns",
