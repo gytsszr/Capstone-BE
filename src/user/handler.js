@@ -19,7 +19,7 @@ const getUser = async () => {
         throw err;
     }
 };
-
+ 
 const createUser = async (request, h) => {
     const {
         firstName, 
@@ -87,6 +87,7 @@ const loginUser = async (request, h) => {
 
 const getCurrentUser = async (request, h) => {
     const token = request.headers['token'];
+
     try {
         const key = 'Jobsterific102723';
         const userData = decryptData(token, key);
@@ -94,20 +95,37 @@ const getCurrentUser = async (request, h) => {
         const user = await users.findOne({
             where: {
                 email: userData.email,
+                token: token,
             }
         });
-        if (!user && user.email != userData.email) {
+
+        // Periksa apakah token di header sesuai dengan token yang masih ada di database
+        if (!user || user.token !== token) {
             return h.response({ message: 'Validation Error' }).code(400);
         }
+
+        // Periksa apakah token masih ada di dalam tabel user token
+        const userToken = await users.findOne({
+            where: {
+                userId: user.userId,
+                token: token,
+            }
+        });
+
+        if (!userToken) {
+            // Token tidak ditemukan, mungkin sudah logout
+            return h.response({ message: 'Validation Error' }).code(400);
+        }
+
         return h.response({
             user
         }).code(200);
 
     } catch (err) {
         console.error('Terjadi kesalahan:', err);
-        return h.response({ message: 'Validation Error', err}).code(400);
+        return h.response({ message: 'Validation Error', err }).code(400);
     }
-}
+};
 
 const updateUser = async (request, h) => {
     const token = request.headers['token'];
