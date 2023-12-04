@@ -237,17 +237,18 @@ const createCampaign = async (req, h) => {
 
     // Create new campaign
     const newCampaign = await batchs.create({
-      campaignName,
-      campaignDesc,
-      campaignPeriod,
-      campaignKeyword,
-      status,
-      startDate,
-      endDate,
+      userId: customer.userId,
+      campaignName: campaignName,
+      campaignDesc: campaignDesc,
+      campaignPeriod: campaignPeriod,
+      campaignKeyword: campaignKeyword,
+      status: status,
+      startDate: startDate,
+      endDate: endDate,
     });
 
     // Send successful create response with new campaign data
-    return h.response({ message: 'Success Create Campaign', batchs }).code(200);
+    return h.response({ message: 'Success Create Campaign', newCampaign }).code(200);
   } catch (err) {
     console.error('Terjadi kesalahan:', err);
     return h.response({ message: 'Internal server error' }).code(500);
@@ -362,7 +363,7 @@ const deleteCampaign = async (req, h) => {
     // Find campaign based on batch ID
     const batch = await batchs.findOne({
       where: {
-        BatchId: batchId,
+        batchId: batchId,
       },
     });
 
@@ -372,7 +373,7 @@ const deleteCampaign = async (req, h) => {
     }
 
     // Delete campaign
-    await batch.remove();
+    await batch.destroy();
 
     // Send successful delete response
     return h.response({ message: 'Success Delete' }).code(200);
