@@ -120,29 +120,46 @@ const getCustomerById = async (req, h) => {
   const token = req.headers['token'];
 
   try {
-    const key = 'Jobsterific102723';
-    const customerData = decryptData(token, key);
+      const key = 'Jobsterific102723';
+      const customerData = decryptData(token, key);
 
-    // Find customer by ID and check if customer is valid
-    const customer = await users.findOne({
-      where: {
-        email: customerData.email,
-        isCustomer: true,
-      },
-    });
+      // Find customer by email and check if customer is valid
+      const customer = await users.findOne({
+          where: {
+              email: customerData.email,
+              isCustomer: true,
+              token: token,
+          },
+      });
 
-    if (!customer && customer.email != customerData.email) {
-      return h.response({ message: 'Validation Error' }).code(400);
-    }
+      // Periksa apakah token di header sesuai dengan token yang masih ada di database
+      if (!customer || customer.token !== token) {
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
 
-    return h.response({
-      customer,
-    }).code(200);
+      // Periksa apakah token masih ada di dalam tabel user_token
+      const userToken = await users.findOne({
+          where: {
+              userId: customer.userId,
+              token: token,
+          }
+      });
+
+      if (!userToken) {
+          // Token tidak ditemukan, mungkin sudah logout
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
+
+      return h.response({
+          customer
+      }).code(200);
+
   } catch (err) {
-    console.error('Error:', err.message);
-    return h.response({ message: err.message || 'Internal server error' }).code(500);
+      console.error('Error:', err.message);
+      return h.response({ message: err.message || 'Internal server error' }).code(500);
   }
 };
+
 
 // Fungsi untuk memperbarui data customer
 const updateCustomer = async (req, h) => {
@@ -165,28 +182,30 @@ const updateCustomer = async (req, h) => {
     // Decrypt token
     const key = 'Jobsterific102723';
     const customerData = decryptData(token, key);
-      
+
     // Find customer based on token's email
     const customer = await users.findOne({
       where: {
+        email: customerData.email,
+        isCustomer: true,
         token: token,
       },
     });
 
-    // If customer not found, send 404 response
-    if (!customer) {
-      return h.response({ message: 'Customer not found' }).code(404);
+    // If customer not found or token mismatch, send 404 response
+    if (!customer || customer.token !== token) {
+      return h.response({ message: 'Validation Error' }).code(400);
     }
 
     // Update customer data
-     customer.firstName = firstName;
-     customer.lastName = lastName;
-     customer.email = email;
-     customer.phone = phone;
-     customer.sex = sex;
-     customer.address = address;
-     customer.website = website;
-     customer.description = description;
+    customer.firstName = firstName;
+    customer.lastName = lastName;
+    customer.email = email;
+    customer.phone = phone;
+    customer.sex = sex;
+    customer.address = address;
+    customer.website = website;
+    customer.description = description;
 
     // Save updated customer data
     await customer.save();
@@ -198,6 +217,7 @@ const updateCustomer = async (req, h) => {
     return h.response({ message: 'Internal server error' }).code(500);
   }
 };
+
 
 // Fungsi untuk membuat campaign
 const createCampaign = async (req, h) => {
@@ -216,23 +236,20 @@ const createCampaign = async (req, h) => {
   try {
     // Decrypt token
     const key = 'Jobsterific102723';
-    const customerData = decryptData(token, key);
+    const userData = decryptData(token, key);
 
-    // Validate token
-    if (!customerData) {
-      return h.response({ message: 'Invalid token' }).code(401);
-    }
-
-    // Find customer based on token's email
+    // Validate token and find user
     const customer = await users.findOne({
       where: {
-        email: customerData.email,
+        email: userData.email,
         isCustomer: true,
+        token: token,
       },
     });
 
-    if (!customer) {
-      return h.response({ message: 'Customer not found' }).code(404);
+    // Validate if user and token are valid
+    if (!customer || customer.token !== token) {
+      return h.response({ message: 'Invalid token' }).code(401);
     }
 
     // Create new campaign
@@ -255,6 +272,7 @@ const createCampaign = async (req, h) => {
   }
 };
 
+
 // Fungsi untuk memperbarui data campaign yang ada
 const updateCampaign = async (req, h) => {
   // Extract token from request headers
@@ -265,123 +283,128 @@ const updateCampaign = async (req, h) => {
 
   // Extract campaign data from request payload
   const {
-    campaignName,
-    campaignDesc,
-    campaignPeriod,
-    campaignKeyword,
-    status,
-    startDate,
-    endDate,
+      campaignName,
+      campaignDesc,
+      campaignPeriod,
+      campaignKeyword,
+      status,
+      startDate,
+      endDate,
   } = req.payload;
 
   try {
-    // Decrypt token
-    const key = 'Jobsterific102723';
-    const customerData = decryptData(token, key);
+      // Decrypt token
+      const key = 'Jobsterific102723';
+      const userData = decryptData(token, key);
 
-    // Validate token
-    if (!customerData) {
-      return h.response({ message: 'Invalid token' }).code(401);
-    }
+      // Validate token
+      if (!userData) {
+          return h.response({ message: 'Invalid token' }).code(401);
+      }
 
-    // Find customer based on token's email
-    const customer = await users.findOne({
-      where: {
-        email: customerData.email,
-        isCustomer: true,
-      },
-    });
+      // Find user based on token's email
+      const user = await users.findOne({
+          where: {
+              email: userData.email,
+              token: token,
+          },
+      });
 
-    // If customer not found, send 404 response
-    if (!customer) {
-      return h.response({ message: 'Customer not found' }).code(404);
-    }
+      // If user not found or not a customer, send 404 response
+      if (!user || !user.isCustomer) {
+          return h.response({ message: 'Customer not found' }).code(404);
+      }
 
-    // Find campaign based on batch ID
-    const batch = await batchs.findOne({
-      where: {
-        BatchId: batchId,
-      },
-    });
+      // Find campaign based on batch ID
+      const batch = await batchs.findOne({
+          where: {
+              BatchId: batchId,
+          },
+      });
 
-    // If campaign not found, send 404 response
-    if (!batch) {
-      return h.response({ message: 'Campaign not found' }).code(404);
-    }
+      // If campaign not found, send 404 response
+      if (!batch) {
+          return h.response({ message: 'Campaign not found' }).code(404);
+      }
 
-    // Update campaign data
-    batch.campaignName = campaignName;
-    batch.campaignDesc = campaignDesc;
-    batch.campaignPeriod = campaignPeriod;
-    batch.campaignKeyword = campaignKeyword;
-    batch.status = status;
-    batch.startDate = startDate;
-    batch.endDate = endDate;
+      // Update campaign data
+      batch.campaignName = campaignName;
+      batch.campaignDesc = campaignDesc;
+      batch.campaignPeriod = campaignPeriod;
+      batch.campaignKeyword = campaignKeyword;
+      batch.status = status;
+      batch.startDate = startDate;
+      batch.endDate = endDate;
 
-    // Save updated campaign
-    await batch.save();
+      // Save updated campaign
+      await batch.save();
 
-    // Send successful update response
-    return h.response({ message: 'Success Update' }).code(200);
+      // Send successful update response
+      return h.response({ message: 'Success Update' }).code(200);
   } catch (err) {
-    console.error('Terjadi kesalahan:', err);
-    return h.response({ message: 'Internal server error' }).code(500);
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Internal server error' }).code(500);
   }
 };
+
 
 // Fungsi untuk menghapus campaign
 const deleteCampaign = async (req, h) => {
   // Extract token from request headers
   const token = req.headers['token'];
 
-  // Extract campaign ID from request path
+  // Extract batch ID from request path
   const batchId = req.params.batchId;
 
   try {
-    // Decrypt token
-    const key = 'Jobsterific102723';
-    const customerData = decryptData(token, key);
+      // Decrypt token
+      const key = 'Jobsterific102723';
+      const customerData = decryptData(token, key);
 
-    // Validate token
-    if (!customerData) {
-      return h.response({ message: 'Invalid token' }).code(401);
-    }
+      // Validate token
+      if (!customerData) {
+          return h.response({ message: 'Invalid token' }).code(401);
+      }
 
-    // Find customer based on token's email
-    const customer = await users.findOne({
-      where: {
-        email: customerData.email,
-        isCustomer: true,
-      },
-    });
+      // Find customer based on token's email and token
+      const customer = await users.findOne({
+          where: {
+              email: customerData.email,
+              token: token,
+              isCustomer: true,
+          },
+      });
 
-    // If customer not found, send 404 response
-    if (!customer) {
-      return h.response({ message: 'Customer not found' }).code(404);
-    }
+      // If customer not found or token doesn't match, send 404 response
+      if (!customer || customer.token !== token) {
+          return h.response({ message: 'Customer not found' }).code(404);
+      }
 
-    // Find campaign based on batch ID
-    const batch = await batchs.findOne({
-      where: {
-        batchId: batchId,
-      },
-    });
+      // Find batch based on batch ID and user ID
+      const batch = await batchs.findOne({
+          where: {
+              batchId: batchId,
+              UserId: customer.userId,
+          },
+      });
 
-    // If campaign not found, send 404 response
-    if (!batch) {
-      return h.response({ message: 'Batch not found' }).code(404);
-    }
+      // If batch not found, send 404 response
+      if (!batch) {
+          return h.response({ message: 'Batch not found' }).code(404);
+      }
 
-    // Delete campaign
-    await batch.destroy();
+      // Delete batch
+      await batch.destroy();
 
-    // Send successful delete response
-    return h.response({ message: 'Success Delete' }).code(200);
+      // Send successful delete response
+      return h.response({ message: 'Success Delete' }).code(200);
   } catch (err) {
-    console.error('Terjadi kesalahan:', err);
-    return h.response({ message: 'Internal server error' }).code(500);
+      console.error('Terjadi kesalahan:', err);
+      return h.response({ message: 'Internal server error' }).code(500);
   }
 };
+
+
 
 // Fungsi untuk melakukan logout customer
 const customerLogout = async (req, h) => {
