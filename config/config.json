@@ -7,17 +7,17 @@
     "dialect": "mysql"
   },
   "test": {
-    "username": "u917904281_root",
-    "password": "#Htd6P#s0",
-    "database": "u917904281_cp_project",
-    "host": "srv1091.hstgr.io",
+    "username": "root",
+    "password": "be-jobsterific",
+    "database": "be-jobsterific",
+    "host": "mysql",
     "dialect": "mysql"
   },
   "production": {
-    "username": "u917904281_root",
-    "password": "#Htd6P#s0",
-    "database": "u917904281_cp_project",
-    "host": "srv1091.hstgr.io",
+    "username": "root",
+    "password": "be-jobsterific",
+    "database": "jobsterific",
+    "host": "mysql",
     "dialect": "mysql"
   }
 }
