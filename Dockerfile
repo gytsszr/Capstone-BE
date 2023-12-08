@@ -1,20 +1,22 @@
 # Use the official Node.js 14 image as a parent image
-FROM node:latest
+FROM node:20-slim
 
 # Set the working directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copy the package.json and package-lock.json files
+# Copy the package.json and package-lock.json files to the working directory
 COPY package*.json ./
 
 # Install the dependencies
 RUN npm install
 
+ENV NODE_ENV=test
+
 # Copy the rest of the code
 COPY . .
 
-# Expose the port that the app runs on
-EXPOSE 3000
+# Expose port 3000
+EXPOSE 5000
 
 # Define the command to run the app
-CMD ["node", "server.js"]
+CMD ["node", "/app/src/server.js"]
