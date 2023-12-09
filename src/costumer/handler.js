@@ -272,6 +272,37 @@ const createCampaign = async (req, h) => {
   }
 };
 
+//Fungsi untuk mendapat data campaign
+const getCampaign = async (request, h) => {
+  const token = request.headers['token'];
+
+  try {
+    // Validate token and check if the user is an admin
+    const key = 'Jobsterific102723';
+    const userData = decryptData(token, key);
+
+    const customer = await users.findOne({
+      where: {
+        email: userData.email,
+        isCustomer: true,
+        token: token,
+      },
+    });
+
+    // Validate if customer and token are valid
+    if (!customer || customer.token !== token) {
+      return h.response({ message: 'Invalid token' }).code(401);
+    }
+
+    // If validation is successful, get all batch
+    const batch = await batchs.findAll();
+
+    return h.response({ batches }).code(200);
+  } catch (err) {
+    console.error('Error:', err);
+    return h.response({ message: 'Validation Error', error: err.message }).code(400);
+  }
+};
 
 // Fungsi untuk memperbarui data campaign yang ada
 const updateCampaign = async (req, h) => {
@@ -346,7 +377,6 @@ const updateCampaign = async (req, h) => {
       return h.response({ message: 'Internal server error' }).code(500);
   }
 };
-
 
 // Fungsi untuk menghapus campaign
 const deleteCampaign = async (req, h) => {
