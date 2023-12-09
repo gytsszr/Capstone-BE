@@ -32,6 +32,11 @@ const createUser = async (request, h) => {
     } = request.payload;
 
     try {
+        const existingUser = await users.findOne({ where: { email } });
+
+        if (existingUser) {
+            return h.response({ message: 'Email already exists' }).code(400);
+        }
         await users.create({
             firstName, 
             lastName, 

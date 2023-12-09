@@ -63,16 +63,16 @@ const registerAdmin = async (req, h) => {
   } = req.payload;
 
   try {
-    // Validate data
     if (!email.includes("@")) {
       return h.response({ error: "Email tidak valid" }).code(400);
     }
-
+    const existingUser = await users.findOne({ where: { email } });
+    if (existingUser) {
+        return h.response({ message: 'Email already exists' }).code(400);
+    }
     if (password.length < 8) {
       return h.response({ error: "Password harus lebih dari 8 karakter" }).code(400);
     }
-
-    // validate the admin token
     const token = req.headers['token'];
     const key = 'Jobsterific102723';
     const adminData = decryptData(token, key);
