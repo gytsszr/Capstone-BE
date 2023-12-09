@@ -34,6 +34,7 @@ const {
     getCustomerById,
     updateCustomer,
     createCampaign,
+    getCampaign,
     updateCampaign,
     deleteCampaign,
     customerLogout
@@ -267,9 +268,18 @@ const routes = [
         path: "/api/customers/{customerId}",
         handler: updateCustomer,
     },
+    {
+        method: "POST",
+        path: "/api/customers/logout",
+        handler: customerLogout,
+    },
 
 //campaign
-
+    {
+        method: 'GET',
+        path: '/api/customers/campaigns',
+        handler: getCampaign,
+    },
     {
         method: "POST",
         path: "/api/customers/campaigns",
@@ -284,11 +294,6 @@ const routes = [
         method: "DELETE",
         path: "/api/customers/campaigns/{batchId}",
         handler: deleteCampaign,
-    },
-    {
-        method: "POST",
-        path: "/api/customers/logout",
-        handler: customerLogout,
     }
 ];
 
