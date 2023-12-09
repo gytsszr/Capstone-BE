@@ -294,8 +294,8 @@ const getCampaign = async (request, h) => {
       return h.response({ message: 'Invalid token' }).code(401);
     }
 
-    // If validation is successful, get all batch
-    const batch = await batchs.findAll();
+    // If validation is successful, get all batches
+    const batches = await batchs.findAll();
 
     return h.response({ batches }).code(200);
   } catch (err) {
@@ -469,6 +469,7 @@ module.exports = {
     loginCustomer,
     getCustomerById,
     updateCustomer,
+    getCampaign,
     createCampaign,
     updateCampaign,
     deleteCampaign,
