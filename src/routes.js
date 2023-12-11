@@ -35,6 +35,7 @@ const {
     updateCustomer,
     createCampaign,
     getCampaign,
+    getCampaignById,
     updateCampaign,
     deleteCampaign,
     customerLogout
@@ -279,6 +280,11 @@ const routes = [
         method: 'GET',
         path: '/api/customers/campaigns',
         handler: getCampaign,
+    },
+    {
+        method: "GET",
+        path: "/api/customers/campaigns/{batchId}",
+        handler: getCampaignById,
     },
     {
         method: "POST",
