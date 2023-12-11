@@ -36,10 +36,9 @@ const registerCustomer = async (req, h) => {
         email,
         password,
         phone,
-        sex,
         address,
         website,
-        description,
+        description
     } = req.payload;
 
     try {
@@ -48,12 +47,11 @@ const registerCustomer = async (req, h) => {
             firstName,
             lastName,
             email,
-            password,
-            phone,
-            sex,
-            address,
-            website,
             description,
+            website,
+            phone,
+            address,
+            password,
             isCustomer: true,
         });
 
@@ -160,7 +158,6 @@ const getCustomerById = async (req, h) => {
   }
 };
 
-
 // Fungsi untuk memperbarui data customer
 const updateCustomer = async (req, h) => {
   // Extract token from request headers
@@ -171,11 +168,10 @@ const updateCustomer = async (req, h) => {
     firstName,
     lastName,
     email,
-    phone,
-    sex,
-    address,
-    website,
     description,
+    website,
+    phone,
+    address,    
   } = req.payload;
 
   try {
@@ -201,11 +197,10 @@ const updateCustomer = async (req, h) => {
     customer.firstName = firstName;
     customer.lastName = lastName;
     customer.email = email;
-    customer.phone = phone;
-    customer.sex = sex;
-    customer.address = address;
-    customer.website = website;
     customer.description = description;
+    customer.website = website;
+    customer.phone = phone;
+    customer.address = address;
 
     // Save updated customer data
     await customer.save();
@@ -217,7 +212,6 @@ const updateCustomer = async (req, h) => {
     return h.response({ message: 'Internal server error' }).code(500);
   }
 };
-
 
 // Fungsi untuk membuat campaign
 const createCampaign = async (req, h) => {
@@ -279,11 +273,11 @@ const getCampaign = async (request, h) => {
   try {
     // Validate token and check if the user is an admin
     const key = 'Jobsterific102723';
-    const userData = decryptData(token, key);
+    const customerData = decryptData(token, key);
 
     const customer = await users.findOne({
       where: {
-        email: userData.email,
+        email: customerData.email,
         isCustomer: true,
         token: token,
       },
@@ -297,10 +291,67 @@ const getCampaign = async (request, h) => {
     // If validation is successful, get all batches
     const batches = await batchs.findAll();
 
-    return h.response({ batches }).code(200);
+    return h.response({ 
+        batches 
+    }).code(200);
   } catch (err) {
     console.error('Error:', err);
     return h.response({ message: 'Validation Error', error: err.message }).code(400);
+  }
+};
+
+// Fungsi untuk mengambil data campaign berdasarkan ID
+const getCampaignById = async (req, h) => {
+  const token = req.headers['token'];
+
+  try {
+      const key = 'Jobsterific102723';
+      const customerData = decryptData(token, key);
+      
+      const customer = await users.findOne({
+          where: {
+              email: customerData.email,
+              isCustomer: true,
+              token: token,
+          },
+      });
+
+      // Periksa apakah token di header sesuai dengan token yang masih ada di database
+      if (!customer || customer.token !== token) {
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
+
+      // Periksa apakah token masih ada di dalam tabel user_token
+      const userToken = await users.findOne({
+          where: {
+              userId: customer.userId,
+              token: token,
+          }
+      });
+
+      if (!userToken) {
+          // Token tidak ditemukan, mungkin sudah logout
+          return h.response({ message: 'Validation Error' }).code(400);
+      }
+      // Ambil data campaign
+      const batch = await batchs.findOne({
+          where: {
+              BatchId: batchId,
+              UserId: customer.userId,
+          },
+      });
+
+      if (!batch) {
+          return h.response({ message: 'Campaign not found' }).code(404);
+      }
+
+      return h.response({
+          batch
+      }).code(200);
+
+  } catch (err) {
+      console.error('Error:', err.message);
+      return h.response({ message: err.message || 'Internal server error' }).code(500);
   }
 };
 
@@ -434,8 +485,6 @@ const deleteCampaign = async (req, h) => {
   }
 };
 
-
-
 // Fungsi untuk melakukan logout customer
 const customerLogout = async (req, h) => {
     const token = req.headers['token'];
@@ -470,6 +519,7 @@ module.exports = {
     getCustomerById,
     updateCustomer,
     getCampaign,
+    getCampaignById,
     createCampaign,
     updateCampaign,
     deleteCampaign,
